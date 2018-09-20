@@ -1,0 +1,86 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 24
+    buildToolsVersion "24.0.0"
+    defaultConfig {
+//        applicationId "com.kaidongyuan.app.kdydriver"
+        applicationId "com.cy_scm.tms_android"
+        minSdkVersion 16
+        targetSdkVersion 22
+        versionCode 2
+        versionName "0.0.5"
+        // 使得dex文件代码能突破65535的限制
+        multiDexEnabled true
+        //APP_ID、APP_KEY、APP_SECRET请根据个推开发者后台申请到的应用参数进行相应替换
+        manifestPlaceholders = [
+                GETUI_APP_ID : "RlESMA5Ett6NGG6d4zUd89",
+                GETUI_APP_KEY : "WooWKdiIMX6zDUNRmTPus8",
+                GETUI_APP_SECRET : "kzKvvT545pArwARCJqrfz3",
+                PACKAGE_NAME : applicationId
+        ]
+        ndk {
+            abiFilters "armeabi", "armeabi-v7a", "x86"
+        }
+    }
+    signingConfigs {
+        release {
+            storeFile file('../tms.jks')
+            storePassword "tms999"
+            keyAlias "tms"
+            keyPassword "tms999"
+        }
+        debug {
+            storeFile file('../tms.jks')
+            storePassword "tms999"
+            keyAlias "tms"
+            keyPassword "tms999"
+        }
+    }
+    buildTypes {
+        release {
+            // 不显示Log
+            buildConfigField "boolean", "LOG_DEBUG", "false"
+            //混淆
+            minifyEnabled true
+            //Zipalign优化
+            zipAlignEnabled true
+            // 移除无用的resource文件
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    testCompile 'junit:junit:4.12'
+    //noinspection GradleCompatible
+    compile 'com.android.support:appcompat-v7:24.0.0'
+    compile project(':basemodule')
+    compile project(':LibMarsdaemon')
+    compile files('libs/BaiduLBS_Android.jar')
+    //noinspection GradleCompatible
+    compile 'com.android.support:cardview-v7:24.0.0'
+    //noinspection GradleCompatible
+    compile 'com.android.support:recyclerview-v7:24.0.0'
+    compile 'com.getbase:floatingactionbutton:1.10.1'
+    compile 'com.uwetrottmann.photoview:library:1.2.4'
+    compile 'com.getui:sdk:2.9.5.0'
+    //noinspection GradleCompatible
+    compile 'com.android.support:support-v4:+'
+    compile 'me.leolin:ShortcutBadger:1.1.4@aar'
+    //微信登录
+    compile 'com.tencent.mm.opensdk:wechat-sdk-android-without-mta:+'
+    compile files('libs/json-simple-1.1.1.jar')
+}
+configurations.all {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        def requested = details.requested
+        if (requested.group == 'com.android.support') {
+            if (!requested.name.startsWith("multidex")) {
+                details.useVersion '24.0.0'
+            }
+        }
+    }
+}

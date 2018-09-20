@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    >
+<RelativeLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/track_text"
+    android:padding="3dp"
+    >
+    <TextView
+        android:id="@+id/city_name"
+        android:layout_marginTop="4dp"
+        android:layout_marginLeft="5dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="14sp"
+        android:text="城市名称"
+        android:textColor="@color/orange"
+        />
+    <ImageView
+        android:id="@+id/iv_city_state"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:contentDescription="@null"
+        android:padding="1dp"
+        android:visibility="visible"
+        android:src="@drawable/download_start_bt"
+        android:scaleType="center" />
+    <ProgressBar
+        android:layout_marginTop="8dp"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="5dp"
+        android:id="@+id/progressBar_city"
+        android:max="100"
+        android:progressDrawable="@drawable/progressbar_small_horizontal"
+        android:indeterminate="false"
+        android:layout_below="@+id/city_name"
+        android:layout_alignLeft="@+id/city_name"
+        android:layout_alignStart="@+id/city_name"
+        android:layout_toLeftOf="@id/iv_city_state"
+        android:layout_marginRight="4dp"/>
+    <TextView
+        android:id="@+id/tv_city_currentprogress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="下载进度:0%"
+        android:textColor="@color/orange"
+        android:textSize="14sp"
+        android:layout_toLeftOf="@+id/iv_city_state"
+        android:layout_marginRight="15dp"
+        android:clickable="true"
+        />
+</RelativeLayout>
+
+
+</LinearLayout>

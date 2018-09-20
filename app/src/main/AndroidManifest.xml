@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.kaidongyuan.app.kdydriver">
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.ACCESS_FIND_LOCATION" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.BAIDU_LOCATION_SERVICE" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS" />
+    <!-- 允许应用读取低级别的系统日志文件 -->
+    <uses-permission android:name="android.permission.READ_LOGS" />
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="android.permission.USE_CREDENTIALS" />
+    <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
+    <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS" />
+    <uses-permission android:name="com.android.launcher.permission.READ_SETTINGS" />
+    <uses-permission android:name="android.permission.BROADCAST_STICKY" />
+    <!--<uses-permission android:name="android.permission.RESTART_PACKAGES" />-->
+    <!--百度地图导航权限注册-->
+    <uses-permission android:name="android.permission.BAIDU_LOCATION_SERVICE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCES_MOCK_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="com.android.launcher.permission.READ_SETTINGS" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_GPS" />
+    <!-- SDK1.5需要android.permission.GET_TASKS权限判断本程序是否为当前运行的应用? -->
+    <uses-permission android:name="android.permission.GET_TASKS" />
+    <uses-permission android:name="android.permission.BROADCAST_STICKY" />
+    <!--android 23 用于忽略电池优化-->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
+    <!-- 来电消音 -->
+    <uses-permission android:name="android.permission.PROCESS_OUTGOING_CALLS" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- 摄像机-->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!--百度地图导航权限注册-->
+    <application
+        android:name=".app.AppContext"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+
+        <!--百度-->
+        <meta-data
+            android:name="com.baidu.lbsapi.API_KEY"
+            android:value="R9gsLKqcUtn9FQqyMDmOjKfrQveKGQ6D" />
+
+        <activity android:name=".ui.activity.LoginActivity">
+            <!--android:theme="@android:style/Theme.NoTitleBar.Fullscreen"-->
+            <!--android:configChanges="orientation|screenSize"-->
+            <!--android:screenOrientation="portrait"-->
+            <!--&gt;-->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+
+        <activity
+            android:name=".ui.activity.GuideActivity"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+            android:screenOrientation="portrait"
+            />
+        <!--<activity-->
+            <!--android:name="com.kaidongyuan.app.kdydriver.ui.activity.LoginActivity"-->
+            <!--android:screenOrientation="portrait"-->
+            <!--android:windowSoftInputMode="adjustResize|adjustPan" />-->
+        <activity
+            android:name="com.kaidongyuan.app.kdydriver.ui.activity.MainActivity"
+            android:configChanges="orientation|screenSize"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="stateHidden|stateAlwaysHidden" />
+        <activity android:name=".ui.activity.NotifyActivity"
+            android:configChanges="orientation|screenSize"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="stateHidden|stateAlwaysHidden"
+            />
+        <activity
+            android:name=".ui.activity.OrderTrackCheckActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen"
+            android:configChanges="orientation|screenSize"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="stateAlwaysHidden"
+            />
+        <activity android:name=".ui.activity.OrderDetailActivity"
+            android:configChanges="orientation|screenSize"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="stateAlwaysHidden"
+            />
+        <activity android:name=".ui.activity.ShipmentCostActivity"
+            android:configChanges="orientation|screenSize"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="stateAlwaysHidden"
+            />
+        <activity
+            android:name=".ui.activity.OrderTrackActivity"
+            android:launchMode="singleTop"
+            android:configChanges="orientation|screenSize"
+            android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+            />
+        <activity android:name=".ui.activity.OrderListChoiceActivity"
+            android:launchMode="standard"
+            android:configChanges="orientation|screenSize"
+            android:screenOrientation="portrait"
+            />
+        <activity
+            android:name=".ui.activity.OrderPayActivity"
+            android:launchMode="singleTop"
+            android:configChanges="orientation|screenSize"
+            android:screenOrientation="portrait"
+            />
+        <activity
+            android:name=".ui.activity.PhotoActivity"
+            android:launchMode="singleTop"
+            android:configChanges="orientation|screenSize"
+            android:screenOrientation="portrait"
+            />
+        <activity
+            android:name=".ui.activity.UpdatePwdActivity"
+            android:configChanges="orientation|screenSize"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize|adjustPan"
+            />
+        <activity android:name=".ui.activity.FeedBackActivity"
+            android:configChanges="orientation|screenSize"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".ui.activity.OfflineMapActivity"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+            android:configChanges="orientation|screenSize"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize|adjustPan"/>
+        <activity android:name=".ui.activity.AboutActivity"
+            android:configChanges="orientation|screenSize"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"/>
+        <service
+            android:name="com.baidu.location.f"
+            android:enabled="true"
+            android:process=":remote">
+            <intent-filter>
+                <action android:name="com.baidu.location.service_v2.2"></action>
+            </intent-filter>
+        </service>
+        <service android:name=".serviceAndReceiver.TrackingService"
+            android:enabled="true"
+            android:exported="false"
+            android:process=":pushservice"
+            >
+            <intent-filter>
+                <action android:name="com.kaidongyuan.app.kdydriver.TrackingService"/>
+            </intent-filter>
+        </service>
+        <service android:name=".serviceAndReceiver.DaemonService"
+            android:process=":daemon"/>
+        <receiver android:name=".serviceAndReceiver.TrackingReceiver"
+            android:process=":pushservice"/>
+        <receiver android:name=".serviceAndReceiver.DaemonReceiver"
+            android:process=":daemon"/>
+        <!-- 配置第三方Receiver -->
+        <receiver
+        android:name=".serviceAndReceiver.GetuiPushReceiver"
+        android:exported="false">
+        <intent-filter>
+            <action android:name="com.igexin.sdk.action.RlESMA5Ett6NGG6d4zUd89" />
+            <action android:name="com.igexin.sdk.action.execute"/>
+        </intent-filter>
+    </receiver>
+    <service android:name=".serviceAndReceiver.GetuiPushService"
+        android:exported="true"
+        android:label="PushService"
+        android:process=":pushservice"
+        />
+        <service android:name=".serviceAndReceiver.GetuiIntentService"
+            />
+
+
+        <!--<activity android:name="com.kaidongyuan.app.kdydriver.wxapi.WXEntryActivity" android:exported="true" />-->
+
+        <activity android:name="com.cy_scm.tms_android.wxapi.WXEntryActivity" android:exported="true" />
+
+</application>
+
+</manifest>

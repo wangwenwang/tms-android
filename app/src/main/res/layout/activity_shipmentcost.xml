@@ -1,0 +1,1169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:background="@color/book_yellow">
+    <com.kaidongyuan.app.basemodule.widget.SlidingTitleView
+        android:id="@+id/slidingTitleView_shipmentcost"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+  <ScrollView
+      android:layout_width="match_parent"
+      android:layout_height="match_parent">
+      <LinearLayout
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:orientation="vertical"
+          >
+          <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:background="@color/book_yellow"
+              >
+              <LinearLayout
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:orientation="horizontal"
+                  android:padding="3dp">
+
+                  <TextView
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:singleLine="true"
+                      android:text="订单号："
+                      android:textColor="@color/details_text"
+                      android:textSize="13sp" />
+
+                  <TextView
+                      android:id="@+id/tv_ORD_NO"
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:background="@null"
+                      android:singleLine="true"
+                      android:text=""
+                      android:textColor="@color/red"
+                      android:textSize="13sp" />
+              </LinearLayout>
+              <LinearLayout
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:orientation="horizontal"
+                  android:padding="3dp">
+
+                  <TextView
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:singleLine="true"
+                      android:text="客户订单号："
+                      android:textColor="@color/details_text"
+                      android:textSize="13sp" />
+
+                  <TextView
+                      android:id="@+id/tv_ORD_NO_CLIENT"
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:background="@null"
+                      android:singleLine="true"
+                      android:text=""
+                      android:textColor="@color/red"
+                      android:textSize="13sp" />
+              </LinearLayout>
+              <LinearLayout
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:orientation="horizontal"
+                  android:padding="3dp">
+
+                  <TextView
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:singleLine="true"
+                      android:text="起运名称："
+                      android:textColor="@color/details_text"
+                      android:textSize="13sp" />
+
+                  <TextView
+                      android:id="@+id/tv_ORD_FROM_NAMES"
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:background="@null"
+                      android:singleLine="true"
+                      android:text=""
+                      android:textColor="@color/red"
+                      android:textSize="13sp" />
+              </LinearLayout>
+              <LinearLayout
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:orientation="horizontal"
+                  android:padding="3dp">
+
+                  <TextView
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:singleLine="true"
+                      android:text="目的名称："
+                      android:textColor="@color/details_text"
+                      android:textSize="13sp" />
+
+                  <TextView
+                      android:id="@+id/tv_ORD_TO_NAME"
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:background="@null"
+                      android:singleLine="true"
+                      android:text=""
+                      android:textColor="@color/red"
+                      android:textSize="13sp" />
+              </LinearLayout>
+              <LinearLayout
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:orientation="horizontal"
+                  android:padding="3dp">
+
+                  <TextView
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:singleLine="true"
+                      android:text="计费单价："
+                      android:textColor="@color/details_text"
+                      android:textSize="13sp" />
+
+                  <TextView
+                      android:id="@+id/tv_order_AMOUNT_PRICE"
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:background="@null"
+                      android:singleLine="true"
+                      android:text=""
+                      android:textColor="@color/red"
+                      android:textSize="13sp" />
+              </LinearLayout>
+              <LinearLayout
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:padding="3dp"
+                  >
+                  <LinearLayout
+                      android:layout_width="0dp"
+                      android:layout_height="wrap_content"
+                      android:layout_weight="1"
+                      >
+                      <TextView
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:singleLine="true"
+                          android:textColor="@color/details_text"
+                          android:text="计费量："
+                          android:textSize="13sp" />
+
+                      <TextView
+                          android:id="@+id/tv_order_CHARGE_AMOUNT"
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:background="@null"
+                          android:singleLine="true"
+                          android:text=""
+                          android:textColor="@color/red"
+                          android:textSize="13sp" />
+
+                  </LinearLayout>
+                  <LinearLayout
+                      android:layout_width="0dp"
+                      android:layout_height="wrap_content"
+                      android:layout_weight="1"
+                      >
+                      <TextView
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:singleLine="true"
+                          android:textColor="@color/details_text"
+                          android:text="订单数量："
+                          android:textSize="13sp" />
+
+                      <TextView
+                          android:id="@+id/tv_ORD_QTY"
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:background="@null"
+                          android:singleLine="true"
+                          android:text=""
+                          android:textColor="@color/red"
+                          android:textSize="13sp" />
+
+                  </LinearLayout>
+
+              </LinearLayout>
+              <LinearLayout
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:padding="3dp"
+                  >
+                  <LinearLayout
+                      android:layout_width="0dp"
+                      android:layout_height="wrap_content"
+                      android:layout_weight="1"
+                      >
+                      <TextView
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:singleLine="true"
+                          android:textColor="@color/details_text"
+                          android:text="运输费："
+                          android:textSize="13sp" />
+
+                      <TextView
+                          android:id="@+id/tv_order_TRANSPORT_FEES"
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:background="@null"
+                          android:singleLine="true"
+                          android:text=""
+                          android:textColor="@color/red"
+                          android:textSize="13sp" />
+
+                  </LinearLayout>
+                  <LinearLayout
+                      android:layout_width="0dp"
+                      android:layout_height="wrap_content"
+                      android:layout_weight="1"
+                      >
+                      <TextView
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:singleLine="true"
+                          android:textColor="@color/details_text"
+                          android:text="订单重量："
+                          android:textSize="13sp" />
+
+                      <TextView
+                          android:id="@+id/tv_ORD_WEIGHT"
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:background="@null"
+                          android:singleLine="true"
+                          android:text=""
+                          android:textColor="@color/red"
+                          android:textSize="13sp" />
+
+                  </LinearLayout>
+
+              </LinearLayout>
+              <LinearLayout
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:padding="3dp"
+                  >
+                  <LinearLayout
+                      android:layout_width="0dp"
+                      android:layout_height="wrap_content"
+                      android:layout_weight="1"
+                      >
+                      <TextView
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:singleLine="true"
+                          android:textColor="@color/details_text"
+                          android:text="分点费："
+                          android:textSize="13sp" />
+
+                      <TextView
+                          android:id="@+id/tv_order_DROPPOINT_FEES"
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:background="@null"
+                          android:singleLine="true"
+                          android:text=""
+                          android:textColor="@color/red"
+                          android:textSize="13sp" />
+
+                  </LinearLayout>
+                  <LinearLayout
+                      android:layout_width="0dp"
+                      android:layout_height="wrap_content"
+                      android:layout_weight="1"
+                      >
+                      <TextView
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:singleLine="true"
+                          android:textColor="@color/details_text"
+                          android:text="订单体积："
+                          android:textSize="13sp" />
+
+                      <TextView
+                          android:id="@+id/tv_ORD_VOLUME"
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:background="@null"
+                          android:singleLine="true"
+                          android:text=""
+                          android:textColor="@color/red"
+                          android:textSize="13sp" />
+
+                  </LinearLayout>
+
+              </LinearLayout>
+              <LinearLayout
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:padding="3dp"
+                  >
+                  <LinearLayout
+                      android:layout_width="0dp"
+                      android:layout_height="wrap_content"
+                      android:layout_weight="1"
+                      >
+                      <TextView
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:singleLine="true"
+                          android:textColor="@color/details_text"
+                          android:text="退货费："
+                          android:textSize="13sp" />
+
+                      <TextView
+                          android:id="@+id/tv_order_RETURN_FEES"
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:background="@null"
+                          android:singleLine="true"
+                          android:text=""
+                          android:textColor="@color/red"
+                          android:textSize="13sp" />
+
+                  </LinearLayout>
+                  <LinearLayout
+                      android:layout_width="0dp"
+                      android:layout_height="wrap_content"
+                      android:layout_weight="1"
+                      >
+                      <TextView
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:singleLine="true"
+                          android:textColor="@color/details_text"
+                          android:text="提送货费："
+                          android:textSize="13sp" />
+
+                      <TextView
+                          android:id="@+id/tv_order_DELIVER_FEES"
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:background="@null"
+                          android:singleLine="true"
+                          android:text=""
+                          android:textColor="@color/red"
+                          android:textSize="13sp" />
+
+                  </LinearLayout>
+
+              </LinearLayout>
+              <LinearLayout
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:padding="3dp"
+                  >
+                  <LinearLayout
+                      android:layout_width="0dp"
+                      android:layout_height="wrap_content"
+                      android:layout_weight="1"
+                      >
+                      <TextView
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:singleLine="true"
+                          android:textColor="@color/details_text"
+                          android:text="压夜费："
+                          android:textSize="13sp" />
+
+                      <TextView
+                          android:id="@+id/tv_order_PRESS_NIGHT"
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:background="@null"
+                          android:singleLine="true"
+                          android:text=""
+                          android:textColor="@color/red"
+                          android:textSize="13sp" />
+
+                  </LinearLayout>
+                  <LinearLayout
+                      android:layout_width="0dp"
+                      android:layout_height="wrap_content"
+                      android:layout_weight="1"
+                      >
+                      <TextView
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:singleLine="true"
+                          android:textColor="@color/details_text"
+                          android:text="燃油附加费："
+                          android:textSize="13sp" />
+
+                      <TextView
+                          android:id="@+id/tv_order_FUEL_SURCHARGE"
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:background="@null"
+                          android:singleLine="true"
+                          android:text=""
+                          android:textColor="@color/red"
+                          android:textSize="13sp" />
+
+                  </LinearLayout>
+
+              </LinearLayout>
+              <LinearLayout
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:padding="3dp"
+                  >
+                  <LinearLayout
+                      android:layout_width="0dp"
+                      android:layout_height="wrap_content"
+                      android:layout_weight="1"
+                      >
+                      <TextView
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:singleLine="true"
+                          android:textColor="@color/details_text"
+                          android:text="装卸费："
+                          android:textSize="13sp" />
+
+                      <TextView
+                          android:id="@+id/tv_order_LOAD_FEES"
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:background="@null"
+                          android:singleLine="true"
+                          android:text=""
+                          android:textColor="@color/red"
+                          android:textSize="13sp" />
+
+                  </LinearLayout>
+                  <LinearLayout
+                      android:layout_width="0dp"
+                      android:layout_height="wrap_content"
+                      android:layout_weight="1"
+                      >
+                      <TextView
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:singleLine="true"
+                          android:textColor="@color/details_text"
+                          android:text="收货人附加费："
+                          android:textSize="13sp" />
+
+                      <TextView
+                          android:id="@+id/tv_order_SITE_SURCHARGE"
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:background="@null"
+                          android:singleLine="true"
+                          android:text=""
+                          android:textColor="@color/red"
+                          android:textSize="13sp" />
+
+                  </LinearLayout>
+
+              </LinearLayout>
+              <LinearLayout
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:padding="3dp"
+                  >
+                  <LinearLayout
+                      android:layout_width="0dp"
+                      android:layout_height="wrap_content"
+                      android:layout_weight="1"
+                      >
+                      <TextView
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:singleLine="true"
+                          android:text="其它费用："
+                          android:textColor="@color/details_text"
+                          android:textSize="13sp" />
+
+                      <TextView
+                          android:id="@+id/tv_order_OTHER_FEES"
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:background="@null"
+                          android:singleLine="true"
+                          android:text=""
+                          android:textColor="@color/red"
+                          android:textSize="13sp" />
+
+                  </LinearLayout>
+                  <LinearLayout
+                      android:layout_width="0dp"
+                      android:layout_height="wrap_content"
+                      android:layout_weight="1"
+                      >
+                      <TextView
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:singleLine="true"
+                          android:text="订单总费："
+                          android:textColor="@color/details_text"
+                          android:textSize="15sp" />
+
+                      <TextView
+                          android:id="@+id/tv_order_FEESCOUNT"
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:background="@null"
+                          android:singleLine="true"
+                          android:text=""
+                          android:textColor="@color/red"
+                          android:textSize="15sp" />
+
+                  </LinearLayout>
+
+              </LinearLayout>
+
+          </LinearLayout>
+
+             <TextView
+                 android:id="@+id/tv_check_shipmentcost"
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 android:drawableRight="@drawable/arrow_down"
+                 android:text="查看装运费用:"
+                 android:textSize="18sp"
+                 android:padding="3dp"
+                 android:background="@drawable/item_gray_bg_selector"
+                 />
+          <LinearLayout
+              android:id="@+id/ll_shipmentcost_detail"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:orientation="vertical"
+              android:visibility="gone">
+             <LinearLayout
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 android:orientation="horizontal"
+                 android:padding="3dp">
+
+                 <TextView
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:singleLine="true"
+                     android:text="装运编号："
+                     android:textColor="@color/details_text"
+                     android:textSize="13sp" />
+
+                 <TextView
+                     android:id="@+id/tv_SHIPMENT_NO"
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:background="@null"
+                     android:singleLine="true"
+                     android:text=""
+                     android:textColor="@color/red"
+                     android:textSize="13sp" />
+             </LinearLayout>
+             <LinearLayout
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 android:orientation="horizontal"
+                 android:padding="3dp">
+
+                 <TextView
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:singleLine="true"
+                     android:text="装运时间："
+                     android:textColor="@color/details_text"
+                     android:textSize="13sp" />
+
+                 <TextView
+                     android:id="@+id/tv_DATE_ADD"
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:background="@null"
+                     android:singleLine="true"
+                     android:text=""
+                     android:textColor="@color/red"
+                     android:textSize="13sp" />
+             </LinearLayout>
+             <LinearLayout
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 android:orientation="horizontal"
+                 android:padding="3dp">
+
+                 <TextView
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:singleLine="true"
+                     android:text="出库时间："
+                     android:textColor="@color/details_text"
+                     android:textSize="13sp" />
+
+                 <TextView
+                     android:id="@+id/tv_DATE_ISSUE"
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:background="@null"
+                     android:singleLine="true"
+                     android:text=""
+                     android:textColor="@color/red"
+                     android:textSize="13sp" />
+
+             </LinearLayout>
+             <LinearLayout
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 android:orientation="horizontal"
+                 android:padding="3dp">
+
+                 <TextView
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:singleLine="true"
+                     android:text="承运商："
+                     android:textColor="@color/details_text"
+                     android:textSize="13sp" />
+
+                 <TextView
+                     android:id="@+id/tv_TMS_FLEET_NAME"
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:background="@null"
+                     android:singleLine="true"
+                     android:text=""
+                     android:textColor="@color/red"
+                     android:textSize="13sp" />
+             </LinearLayout>
+             <LinearLayout
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 android:padding="3dp"
+                 >
+                 <LinearLayout
+                     android:layout_width="0dp"
+                     android:layout_height="wrap_content"
+                     android:layout_weight="1"
+                     >
+                     <TextView
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:singleLine="true"
+                         android:textColor="@color/details_text"
+                         android:text="司机姓名："
+                         android:textSize="13sp" />
+
+                     <TextView
+                         android:id="@+id/tv_DRIVER_NAME"
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:background="@null"
+                         android:singleLine="true"
+                         android:text=""
+                         android:textColor="@color/red"
+                         android:textSize="13sp" />
+
+                 </LinearLayout>
+                 <LinearLayout
+                     android:layout_width="0dp"
+                     android:layout_height="wrap_content"
+                     android:layout_weight="1"
+                     >
+                     <TextView
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:singleLine="true"
+                         android:textColor="@color/details_text"
+                         android:text="装运数量："
+                         android:textSize="13sp" />
+
+                     <TextView
+                         android:id="@+id/tv_TOTAL_QTY"
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:background="@null"
+                         android:singleLine="true"
+                         android:text=""
+                         android:textColor="@color/red"
+                         android:textSize="13sp" />
+
+                 </LinearLayout>
+
+             </LinearLayout>
+             <LinearLayout
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 android:padding="3dp"
+                 >
+                 <LinearLayout
+                     android:layout_width="0dp"
+                     android:layout_height="wrap_content"
+                     android:layout_weight="1"
+                     >
+                     <TextView
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:singleLine="true"
+                         android:textColor="@color/details_text"
+                         android:text="联系电话："
+                         android:textSize="13sp" />
+
+                     <TextView
+                         android:id="@+id/tv_DRIVER_TEL"
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:background="@null"
+                         android:singleLine="true"
+                         android:text=""
+                         android:textColor="@color/red"
+                         android:textSize="13sp" />
+
+                 </LinearLayout>
+                 <LinearLayout
+                     android:layout_width="0dp"
+                     android:layout_height="wrap_content"
+                     android:layout_weight="1"
+                     >
+                     <TextView
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:singleLine="true"
+                         android:textColor="@color/details_text"
+                         android:text="装运重量："
+                         android:textSize="13sp" />
+
+                     <TextView
+                         android:id="@+id/tv_TOTAL_WEIGHT"
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:background="@null"
+                         android:singleLine="true"
+                         android:text=""
+                         android:textColor="@color/red"
+                         android:textSize="13sp" />
+
+                 </LinearLayout>
+
+             </LinearLayout>
+             <LinearLayout
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 android:padding="3dp"
+                 >
+                 <LinearLayout
+                     android:layout_width="0dp"
+                     android:layout_height="wrap_content"
+                     android:layout_weight="1"
+                     >
+                     <TextView
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:singleLine="true"
+                         android:textColor="@color/details_text"
+                         android:text="车牌号码："
+                         android:textSize="13sp" />
+
+                     <TextView
+                         android:id="@+id/tv_PLATE_NUMBER"
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:background="@null"
+                         android:singleLine="true"
+                         android:text=""
+                         android:textColor="@color/red"
+                         android:textSize="13sp" />
+
+                 </LinearLayout>
+                 <LinearLayout
+                     android:layout_width="0dp"
+                     android:layout_height="wrap_content"
+                     android:layout_weight="1"
+                     >
+                     <TextView
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:singleLine="true"
+                         android:textColor="@color/details_text"
+                         android:text="装运体积："
+                         android:textSize="13sp" />
+
+                     <TextView
+                         android:id="@+id/tv_TOTAL_VOLUME"
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:background="@null"
+                         android:singleLine="true"
+                         android:text=""
+                         android:textColor="@color/red"
+                         android:textSize="13sp" />
+
+                 </LinearLayout>
+
+             </LinearLayout>
+
+             <LinearLayout
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 android:orientation="horizontal"
+                 android:padding="3dp">
+
+                 <TextView
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:singleLine="true"
+                     android:text="计费单价："
+                     android:textColor="@color/details_text"
+                     android:textSize="13sp" />
+
+                 <TextView
+                     android:id="@+id/tv_AMOUNT_PRICE"
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:background="@null"
+                     android:text=""
+                     android:textColor="@color/red"
+                     android:textSize="13sp" />
+             </LinearLayout>
+             <LinearLayout
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 android:padding="3dp"
+                 >
+                 <LinearLayout
+                     android:layout_width="0dp"
+                     android:layout_height="wrap_content"
+                     android:layout_weight="1"
+                     >
+                     <TextView
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:singleLine="true"
+                         android:textColor="@color/details_text"
+                         android:text="计费量："
+                         android:textSize="13sp" />
+
+                     <TextView
+                         android:id="@+id/tv_CHARGE_AMOUNT"
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:background="@null"
+                         android:singleLine="true"
+                         android:text=""
+                         android:textColor="@color/red"
+                         android:textSize="13sp" />
+
+                 </LinearLayout>
+                 <LinearLayout
+                     android:layout_width="0dp"
+                     android:layout_height="wrap_content"
+                     android:layout_weight="1"
+                     >
+                     <TextView
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:singleLine="true"
+                         android:textColor="@color/details_text"
+                         android:text="运输费："
+                         android:textSize="13sp" />
+
+                     <TextView
+                         android:id="@+id/tv_TRANSPORT_FEES"
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:background="@null"
+                         android:singleLine="true"
+                         android:text=""
+                         android:textColor="@color/red"
+                         android:textSize="13sp" />
+
+                 </LinearLayout>
+
+             </LinearLayout>
+             <LinearLayout
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 android:padding="3dp"
+                 >
+                 <LinearLayout
+                     android:layout_width="0dp"
+                     android:layout_height="wrap_content"
+                     android:layout_weight="1"
+                     >
+                     <TextView
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:singleLine="true"
+                         android:textColor="@color/details_text"
+                         android:text="分点费："
+                         android:textSize="13sp" />
+
+                     <TextView
+                         android:id="@+id/tv_DROPPOINT_FEES"
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:background="@null"
+                         android:singleLine="true"
+                         android:text=""
+                         android:textColor="@color/red"
+                         android:textSize="13sp" />
+
+                 </LinearLayout>
+                 <LinearLayout
+                     android:layout_width="0dp"
+                     android:layout_height="wrap_content"
+                     android:layout_weight="1"
+                     >
+                     <TextView
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:singleLine="true"
+                         android:textColor="@color/details_text"
+                         android:text="燃油附加费："
+                         android:textSize="13sp" />
+
+                     <TextView
+                         android:id="@+id/tv_FUEL_SURCHARGE"
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:background="@null"
+                         android:singleLine="true"
+                         android:text=""
+                         android:textColor="@color/red"
+                         android:textSize="13sp" />
+
+                 </LinearLayout>
+
+             </LinearLayout>
+             <LinearLayout
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 android:padding="3dp"
+                 >
+                 <LinearLayout
+                     android:layout_width="0dp"
+                     android:layout_height="wrap_content"
+                     android:layout_weight="1"
+                     >
+                     <TextView
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:singleLine="true"
+                         android:textColor="@color/details_text"
+                         android:text="退货费："
+                         android:textSize="13sp" />
+
+                     <TextView
+                         android:id="@+id/tv_RETURN_FEES"
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:background="@null"
+                         android:singleLine="true"
+                         android:text=""
+                         android:textColor="@color/red"
+                         android:textSize="13sp" />
+
+                 </LinearLayout>
+                 <LinearLayout
+                     android:layout_width="0dp"
+                     android:layout_height="wrap_content"
+                     android:layout_weight="1"
+                     >
+                     <TextView
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:singleLine="true"
+                         android:textColor="@color/details_text"
+                         android:text="收货人附加费："
+                         android:textSize="13sp" />
+
+                     <TextView
+                         android:id="@+id/tv_SITE_SURCHARGE"
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:background="@null"
+                         android:singleLine="true"
+                         android:text=""
+                         android:textColor="@color/red"
+                         android:textSize="13sp" />
+
+                 </LinearLayout>
+
+             </LinearLayout>
+             <LinearLayout
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 android:padding="3dp"
+                 >
+                 <LinearLayout
+                     android:layout_width="0dp"
+                     android:layout_height="wrap_content"
+                     android:layout_weight="1"
+                     >
+                     <TextView
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:singleLine="true"
+                         android:textColor="@color/details_text"
+                         android:text="压夜费："
+                         android:textSize="13sp" />
+
+                     <TextView
+                         android:id="@+id/tv_PRESS_NIGHT"
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:background="@null"
+                         android:singleLine="true"
+                         android:text=""
+                         android:textColor="@color/red"
+                         android:textSize="13sp" />
+
+                 </LinearLayout>
+                 <LinearLayout
+                     android:layout_width="0dp"
+                     android:layout_height="wrap_content"
+                     android:layout_weight="1"
+                     >
+                     <TextView
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:singleLine="true"
+                         android:textColor="@color/details_text"
+                         android:text="提送货费："
+                         android:textSize="13sp" />
+
+                     <TextView
+                         android:id="@+id/tv_DELIVER_FEES"
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:background="@null"
+                         android:singleLine="true"
+                         android:text=""
+                         android:textColor="@color/red"
+                         android:textSize="13sp" />
+
+                 </LinearLayout>
+
+             </LinearLayout>
+             <LinearLayout
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 android:padding="3dp"
+                 >
+                 <LinearLayout
+                     android:layout_width="0dp"
+                     android:layout_height="wrap_content"
+                     android:layout_weight="1"
+                     >
+                     <TextView
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:singleLine="true"
+                         android:textColor="@color/details_text"
+                         android:text="装卸费："
+                         android:textSize="13sp" />
+
+                     <TextView
+                         android:id="@+id/tv_LOAD_FEES"
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:background="@null"
+                         android:singleLine="true"
+                         android:text=""
+                         android:textColor="@color/red"
+                         android:textSize="13sp" />
+
+                 </LinearLayout>
+                 <LinearLayout
+                     android:layout_width="0dp"
+                     android:layout_height="wrap_content"
+                     android:layout_weight="1"
+                     >
+                     <TextView
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:singleLine="true"
+                         android:textColor="@color/details_text"
+                         android:text="其他费："
+                         android:textSize="13sp" />
+
+                     <TextView
+                         android:id="@+id/tv_OTHER_FEES"
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:background="@null"
+                         android:singleLine="true"
+                         android:text=""
+                         android:textColor="@color/red"
+                         android:textSize="13sp" />
+
+                 </LinearLayout>
+
+             </LinearLayout>
+             <LinearLayout
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 android:orientation="horizontal"
+                 android:padding="3dp">
+
+                 <TextView
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:singleLine="true"
+                     android:text="总费用："
+                     android:textColor="@color/details_text"
+                     android:textSize="16sp" />
+
+                 <TextView
+                     android:id="@+id/tv_FEESCOUNT"
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:background="@null"
+                     android:text=""
+                     android:textColor="@color/red"
+                     android:textSize="16sp" />
+             </LinearLayout>
+             <TextView
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 android:text="订单费用表:"
+                 android:textSize="16sp"
+                 android:padding="3dp"
+                 android:background="@color/gray"
+                 />
+             <android.support.v7.widget.RecyclerView
+                 android:id="@+id/recyclerView_orderCostList"
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 android:padding="3dp">
+             </android.support.v7.widget.RecyclerView>
+             <TextView
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 android:text="其它费用条目:"
+                 android:textSize="16sp"
+                 android:padding="3dp"
+                 android:background="@color/gray"
+                 />
+             <android.support.v7.widget.RecyclerView
+                 android:id="@+id/recyclerView_otherCostList"
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 android:padding="3dp">
+             </android.support.v7.widget.RecyclerView>
+         </LinearLayout>
+
+
+      </LinearLayout>
+
+
+  </ScrollView>
+</LinearLayout>

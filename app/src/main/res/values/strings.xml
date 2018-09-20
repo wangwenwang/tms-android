@@ -1,0 +1,148 @@
+<resources>
+    <string name="app_name">创云司机宝</string>
+    <string name="action_settings">Settings</string>
+    <string name="login_now">登\t录</string>
+    <string name="switch_account">切换账号</string>
+    <string name="cancel_login">退出登录</string>
+    <string name="no_net_work">没有网络</string>
+    <string name="find_pwd">找回密码</string>
+    <string name="register">注\t册</string>
+    <string name="submit">提交</string>
+    <string name="comfirm">确\t定</string>
+    <string name="cancel">取\t消</string>
+    <string name="add_to_line">添加到常用路线</string>
+    <string name="clear">清\t空</string>
+    <string name="info_hall">信息大厅</string>
+    <string name="index">首页</string>
+    <string name="info_order">订单</string>
+    <string name="goods_track">货物轨迹</string>
+    <string name="feed_back">意见反馈</string>
+    <string name="reset_password">重置密码</string>
+    <string name="update_password">修改密码</string>
+    <string name="check_report">查看报表</string>
+    <string name="old_password">请输入原密码</string>
+    <string name="new_password">请输入新密码</string>
+    <string name="repeat_password">请输入重复密码</string>
+    <string name="contact">联系方式:</string>
+    <string name="phone_mailbox">手机号码/邮箱</string>
+    <string name="feedback_hint_text">欢迎在这儿发表宝贵的意见</string>
+    <string name="please_choose">请选择</string>
+    <string name="search">搜索</string>
+    <string name="tool">离线地图</string>
+    <string name="name">姓名:</string>
+    <string name="role">角色:</string>
+    <string name="business">业务类型:</string>
+    <string name="manage_info">管理信息</string>
+    <string name="my_evaluate">我的评价</string>
+    <string name="cars_search_result">搜索车源</string>
+    <string name="goods_search_result">搜索货源</string>
+    <string name="special_search_result">搜索专线</string>
+    <string name="search1">搜\t索</string>
+    <string name="about">关于</string>
+    <string name="grade">喜欢我们，打分鼓励</string>
+    <string name="share">分享给朋友</string>
+    <string name="weibo">微博</string>
+    <string name="order">订单</string>
+    <string name="payed_order">已交单</string>
+    <string name="unpayed_order">未交单</string>
+    <string name="mine">我的</string>
+    <string name="info_manage">信息管理</string>
+    <string name="no_login">未登录</string>
+    <string name="concern">我的关注</string>
+    <string name="managment">管理</string>
+    <string name="delete">删除</string>
+    <string name="send_code">重新获取</string>
+    <string name="special_detail">专线详情</string>
+    <string name="start">出发地</string>
+    <string name="end">目的地</string>
+
+    <!-- 货源 -->
+    <string name="avaliable_time">有效期</string>
+    <string name="release_person">发布人:</string>
+    <string name="weight">重量：</string>
+    <string name="volume">体积：</string>
+    <string name="goods_source">货源地：</string>
+    <string name="goods_source_type">货源类型</string>
+    <string name="goods_name">货品名称：</string>
+    <string name="cars_no_data">暂无车源信息\n(点击刷新)</string>
+    <string name="goods_no_data">暂无货源信息\n(点击刷新)</string>
+    <string name="special_no_data">暂无专线信息\n(点击刷新)</string>
+    <string name="goods_no_concern">暂无货源关注</string>
+    <string name="cars_no_concern">暂无车源关注</string>
+    <string name="attent">关注</string>
+    <string name="call_phone">拨打电话</string>
+    <string name="dial">拨号</string>
+
+    <!-- 车源 -->
+    <string name="car_type">车辆类型:</string>
+    <string name="car_note">说明：</string>
+    <string name="car_source_type">车源类型</string>
+    <string name="car_source_type1">车源类型:</string>
+    <string name="car_num">车牌号:</string>
+    <string name="car_length1">车长:</string>
+    <string name="see_detail">查看详情</string>
+
+    <!-- 专线详情 -->
+    <string name="start_info">出发地信息</string>
+    <string name="end_info">目的地信息</string>
+    <string name="detail_address">详细地址：</string>
+    <string name="start_branch">出发网点：</string>
+    <string name="end_branch">目的网点：</string>
+    <string name="link_man">联系人：</string>
+    <string name="contact_num">联系电话：</string>
+    <string name="miles">公里数：</string>
+    <string name="passes">途径路线：</string>
+    <string name="road_fee">运价：</string>
+    <string name="all_branch">所有网点：</string>
+    <string name="all">全部</string>
+    <!-- 小助手 -->
+    <string name="peccancy_inquiry">违章查询</string>
+    <string name="weather_inquiry">天气查询</string>
+    <string name="nearby_gas_station">周边加油站</string>
+    <string name="nearby_park">周边停车场</string>
+    <string name="nearby_bank">周边银行</string>
+    <string name="query_peccancy">违章查询</string>
+    <string name="query_weather">天气查询</string>
+    <string name="start_city">出发城市</string>
+    <string name="desti_city">目的城市</string>
+    <string name="input_desti_city">请输入目的城市</string>
+    <string name="pass_city">途径地\t\t\t</string>
+    <string name="load">载重量\t\t\t</string>
+    <string name="car_weight">载重量:</string>
+    <string name="car_length">车长\t\t\t\t\t</string>
+    <string name="goods_type">货源类型</string>
+    <string name="transfer_type">运输方式</string>
+    <string name="is_long_term">是否长期</string>
+    <string name="passed_place">途径地\t\t\t</string>
+    <string name="unlimited">不限</string>
+    <string name="assisant">小助手</string>
+    <string name="time">时间：</string>
+    <string name="address">地址：</string>
+    <string name="pay_num">缴款编号：</string>
+    <string name="fine">罚款：</string>
+    <string name="point">扣分：</string>
+    <string name="please_check_your_network">检查您的网络连接</string>
+    <string name="no_login_note">您还未登录哦!</string>
+    <string name="pull_to_refresh_pull_label">下拉可以刷新</string>
+    <string name="pull_to_refresh_release_label">松开可以刷新</string>
+    <string name="pull_to_refresh_refreshing_label">加载中...</string>
+    <string name="pull_to_refresh_tap_label">下拉可以刷新</string>
+    <string name="pull_to_refresh_update">最近更新：</string>
+    <string name="pull_to_refresh_footer_pull_label">松开后加载</string>
+    <string name="pull_to_refresh_footer_more">查看更多</string>
+
+    <string name="downloader_progress">下载进度%d</string>
+    <string name="warm_remind">温馨提示：添加车辆后才能发布车源哦~</string>
+    <string name="no_permission">对不起，您没有权限！</string>
+
+    <string name="no_record">无数据</string>
+
+    <string name="check_trans_info">查看物流信息</string>
+
+    <string name="check_order_progress">查看进度</string>
+
+    <string name="check_path">查看路线</string>
+    <!-- 陈翔 2016.06.12-->
+    <string name="index_page">首页</string>
+
+</resources>

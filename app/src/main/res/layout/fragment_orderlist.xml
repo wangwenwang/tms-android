@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+     android:layout_width="match_parent"
+    android:layout_height="match_parent"
+
+    android:background="@color/track_bg"
+   >
+    <android.support.v4.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefreshLayout_orderlist_unpayed"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recyclerView_orderlist_unpayed"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="3dp"
+            android:visibility="visible"
+            >
+
+        </android.support.v7.widget.RecyclerView>
+    </android.support.v4.widget.SwipeRefreshLayout>
+
+    <include
+        layout="@layout/layout_no_record"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        />
+    <ImageView
+        android:layout_width="40dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="right|center_vertical"
+        android:clickable="true"/>
+
+    <LinearLayout
+        android:id="@+id/ll_times_line"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:paddingLeft="3dp"
+        android:paddingRight="3dp"
+        android:layout_gravity="right|center_vertical"
+        android:visibility="visible"
+        >
+        <ImageView
+            android:layout_width="6dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:src="@drawable/time_line"
+            android:scaleType="fitXY"
+            android:layout_gravity="center_horizontal"
+            android:alpha="0.7"
+             />
+        <TextView
+            android:id="@+id/tv_start_point"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:background="@drawable/start_point"
+            android:text=""
+            android:textStyle="italic"
+            android:textSize="13sp"
+            android:textColor="@color/colorPrimaryDark"
+            android:gravity="center"
+            />
+        <ImageView
+            android:layout_width="6dp"
+            android:layout_height="0dp"
+            android:layout_weight="8"
+            android:src="@drawable/time_line"
+            android:alpha="0.7"
+            android:scaleType="fitXY"
+            android:layout_gravity="center_horizontal"
+            />
+        <TextView
+            android:id="@+id/tv_end_point"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:background="@drawable/end_point"
+            android:text=""
+            android:textSize="13sp"
+            android:textStyle="italic"
+            android:textColor="@color/colorPrimaryDark"
+            android:gravity="center"
+            />
+        <ImageView
+            android:layout_width="6dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:src="@drawable/time_line"
+            android:scaleType="fitXY"
+            android:alpha="0.7"
+            android:layout_gravity="center_horizontal"
+            />
+    </LinearLayout>
+
+
+</FrameLayout>

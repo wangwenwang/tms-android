@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    >
+    <com.kaidongyuan.app.basemodule.widget.SlidingTitleView
+        android:id="@+id/title_order_navicheck"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+    <TextView
+        android:id="@+id/tv_order_toName"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:paddingLeft="8dp"
+        android:background="@color/track_text"
+        android:text="目的地名称:加载失败，请返回重进"
+        android:textSize="18sp"
+        android:gravity="center_vertical|left"
+        android:visibility="visible"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/track_text"
+        android:orientation="horizontal"
+        >
+        <EditText
+            android:id="@+id/ed_navi_toadress"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_margin="3dp"
+            android:layout_height="40dp"
+            android:hint=" 目的地： 地图选点,查询路线~"
+            android:background="@drawable/dialog_white"
+            android:gravity="center_vertical|left"/>
+        <ImageButton
+            android:layout_marginRight="4dp"
+            android:layout_marginTop="1dp"
+            android:layout_marginBottom="1dp"
+            android:id="@+id/btn_search"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/search_btn_selector"
+           android:layout_gravity="center"
+            android:padding="0dp"
+            android:scaleType="fitXY"
+            />
+    </LinearLayout>
+    <com.baidu.mapapi.map.MapView
+        android:id="@+id/mapView_ordernavi"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:clickable="true" />
+</LinearLayout>
