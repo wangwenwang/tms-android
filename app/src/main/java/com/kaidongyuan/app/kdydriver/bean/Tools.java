@@ -4,6 +4,7 @@ import android.app.ActivityManager;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Environment;
@@ -20,11 +21,14 @@ import org.json.simple.parser.ParseException;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -33,7 +37,12 @@ import java.net.URLEncoder;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
+import static android.content.Context.MODE_MULTI_PROCESS;
 import static android.widget.Toast.LENGTH_LONG;
 
 public class Tools{
@@ -152,7 +161,7 @@ public class Tools{
 			//获取到文件的大小
 			pd.setMax(conn.getContentLength() / 1000 / 1000);
 			InputStream is = conn.getInputStream();
-			File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath(), LoginActivity.DestFileName);
+			File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath(), LoginActivity.ZipFileName);
 			FileOutputStream fos = new FileOutputStream(file);
 			BufferedInputStream bis = new BufferedInputStream(is);
 			byte[] buffer = new byte[1024];
@@ -198,65 +207,6 @@ public class Tools{
 		}
 		Log.i("String的长度",new Integer(out.length()).toString());
 		return  out.toString();
-	}
-
-	/**
-	 * 获取最新版本信息
-	 * @return
-	 */
-	public static JSONObject getServerVersion() {
-
-		String WarehouseCode = "";
-		String UserID = "";
-		String params = "{\"ConfigCode\":\"" + "APPINFOR" + "\"}";
-		String paramsEncoding = URLEncoder.encode(params);
-		String Strurl = "https://scm.cy-scm.com/wms/RFAppInfor.do?WarehouseCode=" + WarehouseCode + "&UserID=" + UserID + "&params=" + paramsEncoding;
-
-		HttpURLConnection conn=null;
-		try {
-
-			URL url = new URL(Strurl);
-			conn = (HttpURLConnection) url.openConnection();
-			conn.setConnectTimeout(5000);
-			conn.setRequestProperty("AuthCode","cyscm");
-			conn.setRequestProperty("AuthID","");
-			conn.setRequestMethod("GET");
-			if(HttpURLConnection.HTTP_OK==conn.getResponseCode()){
-
-				Log.d("LM","RFAppInfor请求成功");
-				InputStream in=conn.getInputStream();
-				String resultStr = Tools.inputStream2String(in);
-				resultStr = URLDecoder.decode(resultStr,"UTF-8");
-
-				try {
-					JSONObject jsonObj = (JSONObject)(new JSONParser().parse(resultStr));
-					Log.i("LM",jsonObj.toJSONString() + "\n" + jsonObj.getClass());
-					String status = (String)jsonObj.get("status");
-					String Msg = (String)jsonObj.get("Msg");
-					if(status.equals("1")){
-
-						if(jsonObj.get("data").getClass().getName().equals(org.json.simple.JSONObject.class.getName())) {
-
-							JSONObject dict = (org.json.simple.JSONObject) jsonObj.get("data");
-							return dict;
-						}
-					}
-				} catch (ParseException e) {
-					e.printStackTrace();
-				}
-				in.close();
-			}
-			else {
-				Log.i("PostGetUtil","get请求失败");
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		finally{
-			conn.disconnect();
-		}
-		return null;
 	}
 
 	/**
@@ -377,5 +327,233 @@ public class Tools{
 		} else {
 			Toast.makeText(mContext, "未检索到本机已安装‘百度地图’或‘高德地图’App", LENGTH_LONG).show();
 		}
+	}
+
+
+
+	/**
+	 * 使用get方式与服务器通信
+	 * @return
+	 */
+	public static String timingTracking(String cellphone, String vehicleLocation, String lon, String lat, String code) {
+
+		Log.d("LM", "上传定位点，网络请求");
+
+		String params1 =
+				"{" +
+						"\"cellphone\":\"" + cellphone + "\"," +
+						"\"userName\":\"" + "" + "\"," +
+						"\"vehicleLocation\":\"" + vehicleLocation + "\"," +
+						"\"lon\":\"" + lon + "\"," +
+						"\"lat\":\"" + lat + "\"," +
+						"\"uuid\":\"" + "android" + "\"," +
+						"\"code\":\"" + code + "\"," +
+						"\"brightscreen\":\"" + "1" + "\"," +
+						"\"charging\":\"" + "0" + "\"," +
+						"\"os\":\"" + "7.0" + "\"" +
+				"}";
+
+		Log.d("LM", "params1: " + params1);
+
+		Map<String, String> params = new HashMap<>();
+		params.put("params", params1);
+		byte[] data = getRequestData(params, "utf-8").toString().getBytes();//获得请求体
+		try {
+
+			URL url = new URL("http://zwlttest.3322.org:8090/tmsApp/timingTracking.do");
+
+			HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
+			httpURLConnection.setConnectTimeout(5000);     //设置连接超时时间
+			httpURLConnection.setDoInput(true);                  //打开输入流，以便从服务器获取数据
+			httpURLConnection.setDoOutput(true);                 //打开输出流，以便向服务器提交数据
+			httpURLConnection.setRequestMethod("POST");     //设置以Post方式提交数据
+			httpURLConnection.setUseCaches(false);               //使用Post方式不能使用缓存
+			//设置请求体的类型是文本类型
+			httpURLConnection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+			//设置请求体的长度
+			httpURLConnection.setRequestProperty("Content-Length", String.valueOf(data.length));
+			//获得输出流，向服务器写入数据
+			OutputStream outputStream = httpURLConnection.getOutputStream();
+			outputStream.write(data);
+
+			int response = httpURLConnection.getResponseCode();            //获得服务器的响应码
+			if(response == HttpURLConnection.HTTP_OK) {
+				Log.d("LM", "上传位置成功");
+				InputStream inptStream = httpURLConnection.getInputStream();
+				return dealResponseResult(inptStream);                     //处理服务器的响应结果
+			}
+		} catch (IOException e) {
+			//e.printStackTrace();
+			return "err: " + e.getMessage().toString();
+		}
+		return "timingTracking请求结束";
+	}
+
+	/*
+	 * Function  :   封装请求体信息
+	 * Param     :   params请求体内容，encode编码格式
+	 */
+	public static StringBuffer getRequestData(Map<String, String> params, String encode) {
+		StringBuffer stringBuffer = new StringBuffer();        //存储封装好的请求体信息
+		try {
+			for(Map.Entry<String, String> entry : params.entrySet()) {
+				stringBuffer.append(entry.getKey())
+						.append("=")
+						.append(URLEncoder.encode(entry.getValue(), encode))
+						.append("&");
+			}
+			stringBuffer.deleteCharAt(stringBuffer.length() - 1);    //删除最后的一个"&"
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return stringBuffer;
+	}
+
+	/*
+	 * Function  :   处理服务器的响应结果（将输入流转化成字符串）
+	 * Param     :   inputStream服务器的响应输入流
+	 */
+	public static String dealResponseResult(InputStream inputStream) {
+		String resultData = null;      //存储处理结果
+		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+		byte[] data = new byte[1024];
+		int len = 0;
+		try {
+			while((len = inputStream.read(data)) != -1) {
+				byteArrayOutputStream.write(data, 0, len);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		resultData = new String(byteArrayOutputStream.toByteArray());
+		return resultData;
+	}
+
+	/**
+	 *  解压assets的zip压缩文件到指定目录
+	 *  @param  context 上下文对象
+	 *  @param  assetName 压缩文件名
+	 *  @param  outputDirectory 输出目录
+	 *  @param  isReWrite 是否覆盖
+	 *  @throws IOException
+	 */
+	public static void unZip(Context context, String assetName, String outputDirectory, boolean isReWrite) throws IOException {
+		// 创建解压目标目录
+		File file = new File(outputDirectory);
+		//如果目标目录不存在，则创建
+		if (!file.exists()) {
+			file.mkdirs();
+		}
+		// 打开压缩文件
+		InputStream inputStream = context.getAssets().open(assetName);
+		ZipInputStream zipInputStream = new ZipInputStream(inputStream);
+		// 读取一个进入点
+		ZipEntry zipEntry = zipInputStream.getNextEntry();
+		// 使用1Mbuffer
+		byte[] buffer = new byte[1024 * 1024];
+		//解压时字节计数
+		int count = 0;
+		// 如果进入点为空说明已经遍历完所有压缩包中文件和目录
+		while (zipEntry != null) {
+			//如果是一个目录
+			if (zipEntry.isDirectory()) {
+				file = new File(outputDirectory + File.separator + zipEntry.getName());                // 文件需要覆盖或者是文件不存在
+				if (isReWrite || !file.exists()) {
+					file.mkdir();
+				}
+			} else {
+				// 如果是文件
+				file = new File(outputDirectory + File.separator + zipEntry.getName());
+				// 文件需要覆盖或者文件不存在，则解压文件
+				if (isReWrite || !file.exists()) {
+					file.createNewFile();
+					FileOutputStream fileOutputStream = new FileOutputStream(file);
+					while ((count = zipInputStream.read(buffer)) > 0) {
+						fileOutputStream.write(buffer, 0, count);
+					}
+					fileOutputStream.close();
+				}
+			}
+			// 定位到下一个文件入口
+			zipEntry = zipInputStream.getNextEntry();
+		}
+		zipInputStream.close();
+	}
+
+	public static boolean fileIsExists(String strFile) {
+		try {
+			File f=new File(strFile);
+			if(!f.exists()) {
+				return false;
+			}
+		}
+		catch (Exception e) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * 解压zip到指定的路径
+	 * @param zipFileString  ZIP的名称
+	 * @param outPathString   要解压缩路径
+	 * @throws Exception
+	 */
+	public static void UnZipFolder(String zipFileString, String outPathString) throws Exception {
+		ZipInputStream inZip = new ZipInputStream(new FileInputStream(zipFileString));
+		ZipEntry zipEntry;
+		String  szName = "";
+		while ((zipEntry = inZip.getNextEntry()) != null) {
+			szName = zipEntry.getName();
+			if (zipEntry.isDirectory()) {
+				//获取部件的文件夹名
+				szName = szName.substring(0, szName.length() - 1);
+				File folder = new File(outPathString + File.separator + szName);
+				folder.mkdirs();
+			} else {
+				Log.d("LM","解压：" + outPathString + "   " + File.separator + "   " + szName);
+				File file = new File(outPathString + File.separator + szName);
+				if (!file.exists()){
+					Log.e("LM", "Create the file:" + outPathString + File.separator + szName);
+					file.getParentFile().mkdirs();
+					file.createNewFile();
+				}
+				// 获取文件的输出流
+				FileOutputStream out = new FileOutputStream(file);
+				int len;
+				byte[] buffer = new byte[1024];
+				// 读取（字节）字节到缓冲区
+				while ((len = inZip.read(buffer)) != -1) {
+					// 从缓冲区（0）位置写入（字节）字节
+					out.write(buffer, 0, len);
+					out.flush();
+				}
+				out.close();
+			}
+		}
+		inZip.close();
+	}
+
+	/**
+	 * 获取zip版本号
+	 * @param mContext 上下文
+	 * @return
+	 */
+	public static String getAppZipVersion(Context mContext) {
+
+		SharedPreferences pre_appinfo = mContext.getSharedPreferences("w_AppInfo", MODE_MULTI_PROCESS);
+		return pre_appinfo.getString("ZipVersion", "");
+	}
+
+	/**
+	 * 设置zip版本号
+	 * @param mContext 上下文
+	 * @param CURR_ZIP_VERSION 版本号
+	 * @throws Exception
+	 */
+	public static void setAppZipVersion(Context mContext, String CURR_ZIP_VERSION) {
+
+		SharedPreferences pre_appinfo = mContext.getSharedPreferences("w_AppInfo", MODE_MULTI_PROCESS);
+		pre_appinfo.edit().putString("ZipVersion", CURR_ZIP_VERSION).commit();
 	}
 }

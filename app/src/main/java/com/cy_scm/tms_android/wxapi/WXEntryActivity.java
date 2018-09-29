@@ -163,7 +163,7 @@ public class WXEntryActivity extends Activity implements IWXAPIEventHandler {
 
         String params = "{\"wxOpenid\":\"" + openid + "\"}";
         String paramsEncoding = URLEncoder.encode(params);
-        String Strurl = "http://zwlttest.3322.org:8081/tmsApp/login.do?params=" + paramsEncoding;
+        String Strurl = "http://zwlttest.3322.org:8090/tmsApp/login.do?params=" + paramsEncoding;
 
         HttpURLConnection conn=null;
         try {

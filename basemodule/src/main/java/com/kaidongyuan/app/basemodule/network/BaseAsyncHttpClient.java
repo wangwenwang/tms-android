@@ -134,6 +134,8 @@ public abstract class BaseAsyncHttpClient implements IAsyncHttpLient{
     public void sendFileRequest(String url, String destFileName ) {
         this.url=url;
         this.destFileName=destFileName;
+        Log.d("LM", "url: " + url);
+        Log.d("LM", "destFileName: " + destFileName);
         mLoadFile(destFileName);//以文件名destFileName作为Tag
     }
     /**
@@ -167,7 +169,7 @@ public abstract class BaseAsyncHttpClient implements IAsyncHttpLient{
     @Override
     public void mSend(final String request_tag) {
 
-        Log.d("LM", "mSend: request_tag  " + request_tag);
+        Log.d("LM", "网络请求标签：" + request_tag);
         String log_msg = url + "?";
         if (params != null){
 //            UUID uuid=UUID.randomUUID();
@@ -185,6 +187,7 @@ public abstract class BaseAsyncHttpClient implements IAsyncHttpLient{
         try {
             okHttpUtils.post().url(url).tag(request_tag).params(params).build().execute(new MyStringCallBack(request_tag));
         }catch (Exception ex){
+            Log.d("LM", "okHttpUtils" + ex.getMessage());
             MLog.e("okHttpUtils"+ex.getMessage());
         }
     }
@@ -195,10 +198,13 @@ public abstract class BaseAsyncHttpClient implements IAsyncHttpLient{
         final String strtag=tag;
         MLog.i(url  );
         if (need_show_dialog){
+            Log.d("LM", "mLoadFile0");
             activityListener.showLoadingDialog();
         }
+        Log.d("LM", "mLoadFile1");
         // 用 get方式请求 下载文件，根据服务器来决定请求方式
         okHttpUtils.get().url(url).tag(strtag).build().execute(new MyFileCallBack(Environment.getExternalStorageDirectory().getAbsolutePath(),destFileName));
+        Log.d("LM", "mLoadFile2");
 
     }
 

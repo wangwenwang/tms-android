@@ -7,6 +7,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationManager;
+import android.app.ProgressDialog;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -29,13 +30,11 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.Window;
 import android.webkit.GeolocationPermissions;
 import android.webkit.JavascriptInterface;
 import android.webkit.JsResult;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
-import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.RemoteViews;
@@ -48,7 +47,6 @@ import com.baidu.location.LocationClient;
 import com.kaidongyuan.app.basemodule.interfaces.AsyncHttpCallback;
 import com.kaidongyuan.app.basemodule.utils.nomalutils.MPermissionsUtil;
 import com.kaidongyuan.app.basemodule.utils.nomalutils.NetworkUtils;
-import com.kaidongyuan.app.basemodule.widget.LMLog;
 import com.kaidongyuan.app.basemodule.widget.MLog;
 import com.kaidongyuan.app.kdydriver.R;
 import com.kaidongyuan.app.kdydriver.bean.Tools;
@@ -83,7 +81,8 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 
     static public IWXAPI mWxApi;
 
-    public final static String DestFileName = "tms_0.0.1.apk";
+    public final static String DestFileName = "saas-tms.apk";
+    public final static String ZipFileName = "dist.zip";
 
     String server_App_Version;
 
@@ -113,7 +112,10 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
     //拍照图片路径
     private String cameraFielPath;
     private Uri mImageUri, mImageUriFromFile;
-    private static final String FILE_PROVIDER_AUTHORITY = "com.cy_scm.wms_android.fileprovider";
+    private static final String FILE_PROVIDER_AUTHORITY = "com.cy_scm.tms_android.fileprovider";
+    // zip解压路径
+    String unZipOutPath;
+    private String CURR_ZIP_VERSION = "0.0.0";
 
 
     private Intent mLocationIntent;
@@ -129,6 +131,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 
 
         mContext = this;
+        unZipOutPath = "/data/data/" + getPackageName() + "/upzip/";
 
 //        Button bt = (Button) findViewById(R.id.button);
 //        //1.匿名内部类
@@ -141,9 +144,19 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 //            }
 //        });
 
+        // 设置ZIP版本号
+        String curr_zip_version = Tools.getAppZipVersion(mContext);
+        if(curr_zip_version != null && curr_zip_version.equals("")) {
+
+            Tools.setAppZipVersion(mContext, CURR_ZIP_VERSION);
+        }
+        curr_zip_version = Tools.getAppZipVersion(mContext);
+        Log.d("LM", "本地zip版本号：： " + curr_zip_version);
+
         appName = getResources().getString(R.string.app_name);
 
         mWebView = (WebView) findViewById((R.id.lmwebview));
+        mWebView.getSettings().setTextZoom(100);
 
 
         LocationClient mLocationClient = new LocationClient(getApplicationContext());
@@ -154,6 +167,17 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
                 super.onPageStarted(view, url, favicon);
+            }
+
+            // js拔打电话
+            public boolean shouldOverrideUrlLoading(WebView view,String url) {
+
+                if (url.startsWith("mailto:") || url.startsWith("geo:") || url.startsWith("tel:")) {
+
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                    startActivity(intent);
+                }
+                return true;
             }
         });
 
@@ -219,12 +243,23 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
         });
 
         mLocationClient.start();
-//        mLocationClient.enableAssistantLocation(mWebView);
+
+        boolean isExists = Tools.fileIsExists("/data/data/" + getPackageName() + "/upzip/dist/index.html");
+        if(isExists) {
+
+            Log.d("LM", "html已存在，无需解压");
+        }else {
+
+            Log.d("LM", "html不存在，开始解压");
+            try { Tools.unZip(mContext, "dist.zip", unZipOutPath, true); }
+            catch (IOException e) { e.printStackTrace(); }
+            Log.d("LM", "解压完成，加载html");
+        }
+        mWebView.loadUrl("file:///data/data/" + getPackageName() + "/upzip/dist/index.html");
 
         // 启用javascript
         mWebView.getSettings().setJavaScriptEnabled(true);
         mWebView.setVerticalScrollbarOverlay(true);
-        mWebView.loadUrl("file:///android_asset/www/index.html");
 //        mWebView.loadUrl("http://163xw.com/jsAlbum.html");
 
         // 在js中调用本地java方法
@@ -249,7 +284,15 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
             mLocationIntent = new Intent(this, TrackingService.class);
         }
         getApplicationContext().startService(mLocationIntent);
-
+//
+////        try {
+////            Thread.sleep(2000);
+////        } catch (InterruptedException e) {
+////            e.printStackTrace();
+////        }
+////        Log.d("LM", " Thread.sleep(: 2000");
+//
+//
         initHandler();
     }
 
@@ -263,8 +306,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
     @Override
     public void postSuccessMsg(String msg, String request_tag) {
 
-        Log.d("LM", "postSuccessMsg msg: " + msg);
-        Log.d("LM", "postSuccessMsg request_tag: " + request_tag);
+        Log.d("LM", "标签" + request_tag + "请求成功：" + msg);
 
         if (msg.equals("error")){
             //下载安装包失败
@@ -284,40 +326,53 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 
             String status = jo.getString("status");
 
-            String downloadUrl = null;
-            String versionNo = null;
+            String apkDownloadUrl = null;
+            String server_apkVersion = null;
+            String zipDownloadUrl = null;
+            String server_zipVersion = null;
             if(status.equals("1")) {
 
                 JSONObject dict = jo.getJSONObject("data");
-                downloadUrl = dict.getString("downloadUrl");
-                versionNo = dict.getString("versionNo");
-                Log.d("LM", "postSuccessMsg: downloadUrl" + downloadUrl);
-                Log.d("LM", "postSuccessMsg: versionNo" + versionNo);
+                apkDownloadUrl = dict.getString("downloadUrl");
+                server_apkVersion = dict.getString("versionNo");
+                zipDownloadUrl = dict.getString("zipDownloadUrl");
+                server_zipVersion = dict.getString("zipVersionNo");
             }
 
-            String downUrl=downloadUrl;
-            String version=versionNo;
 //            downUrl = "http://oms.kaidongyuan.com:8888/download/saas-wms.apk";
-            if (version!=null && downUrl!=null) {
+            if (server_apkVersion!=null && apkDownloadUrl!=null) {
                 try {
-                    String currentVersion = getMContext().getPackageManager().getPackageInfo(getMContext().getPackageName(), 0).versionName;
-                    MLog.w( "version:"+version+"\tcurrentVersion:"+currentVersion);
+                    String current_apkVersion = getMContext().getPackageManager().getPackageInfo(getMContext().getPackageName(), 0).versionName;
+                    MLog.w( "server_apkVersion:"+server_apkVersion+"\tcurrent_apkVersion:"+current_apkVersion);
 
-                    int compareVersion = Tools.compareVersion(version, currentVersion);
+                    int compareVersion = Tools.compareVersion(server_apkVersion, current_apkVersion);
                     if (compareVersion == 1) {
 
-                        createUpdateDialog(currentVersion, version, downUrl);
+                        createUpdateDialog(current_apkVersion, server_apkVersion, apkDownloadUrl);
                         minefragment.isupdate=true;
                     } else {
 
+                        Log.d("LM", "apk为最新版本");
                         checkGpsState();
+
+                        String curr_zipVersion = Tools.getAppZipVersion(mContext);
+                        compareVersion = Tools.compareVersion(server_zipVersion, curr_zipVersion);
+                        if (compareVersion == 1) {
+
+                            Log.d("LM", "服务器zip版本：" + server_zipVersion + "    " + "本地zip版本：" + CURR_ZIP_VERSION);
+                            CURR_ZIP_VERSION = server_zipVersion;
+                            Log.d("LM", "更新zip...");
+                            showUpdataZipDialog(zipDownloadUrl);
+                        }else {
+
+                            Log.d("LM", "zip为最新版本");
+                        }
                     }
                 } catch (PackageManager.NameNotFoundException e) {
                     Log.d("LM","NameNotFoundException" + e.getMessage());
                     e.printStackTrace();
                 }
             }
-
         }
     }
 
@@ -331,9 +386,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
     public void createUpdateDialog(String currentVersion, String version, final String downUrl) {
         if (mUpdataVersionDialog == null) {
 
-            Log.d("LM", "---------------0");
             AlertDialog.Builder builder = new AlertDialog.Builder(getMContext());
-            Log.d("LM", "---------------1.1");
             builder.setMessage("当前版本：" + currentVersion + "\n最新版本：" + version);
             builder.setCancelable(false);
             builder.setTitle("更新版本");
@@ -347,7 +400,6 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
 
-                    Log.d("LM", "---------------3");
                     mUpdataVersionDialog.cancel();
                     MLog.w("update.url:" + downUrl);
                     //以存储文件名为Tag名
@@ -460,6 +512,23 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 
                 Log.d("LM", "获取当前位置页面已加载");
 
+                new Thread() {
+
+                    public void run() {
+                        //开启后台定位服务
+
+                        Log.d("LM", "获取当前位置页面已加载1");
+                        if (mLocationIntent == null) {
+                            Log.d("LM", "获取当前位置页面已加载2");
+                            mLocationIntent = new Intent(mContext, TrackingService.class);
+                        }
+                        Log.d("LM", "获取当前位置页面已加载3");
+                        mContext.getApplicationContext().startService(mLocationIntent);
+                        Log.d("LM", "获取当前位置页面已加载4");
+                        Log.d("LM", "mContext.getApplicationContext()" + mContext.getApplicationContext());
+                    }
+                }.start();
+
                 SharedPreferences readLatLng = mContext.getSharedPreferences("CurrLatLng", MODE_MULTI_PROCESS);
                 final String address = readLatLng.getString("w_address", "");
 
@@ -472,7 +541,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                         Log.d("LM", url);
                     }
                 });
-            }  else if (exceName.equals("导航")) {
+            } else if (exceName.equals("导航")) {
 
                 Log.d("LM", "导航");
 
@@ -534,10 +603,10 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
     }
 
     public void checkVersion() {
-        Log.d("LM", "checkVersion: ");
+        Log.d("LM", "检查apk及zip版本");
         Map<String, String> params = new HashMap<>();
-        params.put("strLicense", "");
-        mClient.sendRequest("http://zwlttest.3322.org:8081/tmsApp/queryAppVersion.do?params={tenantCode:%27KDY%27}", params, TAG_CHECKVERSION);
+        params.put("params", "{\"tenantCode\":\"KDY\"}");
+        mClient.sendRequest("http://zwlttest.3322.org:8090/tmsApp/queryAppVersion.do", params, TAG_CHECKVERSION);
     }
     private void initHandler() {
         mHandler=new Handler(new Handler.Callback() {
@@ -609,7 +678,6 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
         }
     }
 
-
     private void openImageChooserActivity() {
         android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(LoginActivity.this);
         builder.setTitle("拍照/相册");
@@ -657,14 +725,15 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
             startActivityForResult(intent, FILE_CAMERA_RESULT_CODE);
         }
     }
+
     /**
      * 判断手机是否有SD卡。
      *
      * @return 有SD卡返回true，没有返回false。
      */
     public boolean hasSDCard() {
-        return Environment.MEDIA_MOUNTED.equals(Environment
-                .getExternalStorageState());
+
+        return Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState());
     }
 
     private void takeCameraM() {
@@ -740,15 +809,16 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
     }
 
     /**
-     * 两次点击返回按钮小于两秒退出程序到桌面
+     * 返回上一页
      */
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        Log.d("LM", "onKeyDown: " + KeyEvent.KEYCODE_BACK);
+
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            goHomeActivity();
+
+            mWebView.goBack();
         }
-        return super.onKeyDown(keyCode, event);
+        return false;
     }
 
     /**
@@ -760,7 +830,88 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
         startActivity(home);
     }
 
+    /******************************************************** HTML版本更新功能 ********************************************************/
+    /**
+     * 弹出对话框
+     */
+    protected void showUpdataZipDialog(final String downUrl) {
 
+        downLoadZip(downUrl);
+    }
+
+    protected void downLoadZip(final String downUrl) {
+        //进度条
+        final ProgressDialog pd;
+        pd = new ProgressDialog(this);
+        pd.setCancelable(false);
+        pd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        pd.setMessage("");
+        pd.show();
+        pd.setOnKeyListener(onKeyListener);
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    File file = Tools.getFileFromServer(downUrl, pd);
+                    Log.d("LM", "Zip下载完毕，地址：" + file.getPath());
+
+                    // 更新ZIP版本号
+                    Tools.setAppZipVersion(mContext, CURR_ZIP_VERSION);
+                    Log.d("LM", "zip更新成功，设置版本号为：" + CURR_ZIP_VERSION);
+
+                    Log.d("LM", "取出验证为：" + Tools.getAppZipVersion(mContext));
+
+
+                    try {
+                        Log.d("LM", "SD卡开始解压...");
+                        Tools.UnZipFolder("/storage/emulated/0/dist.zip", unZipOutPath);
+                        Log.d("LM", "SD卡完成解压...");
+                    } catch (Exception e) {
+                        Log.d("LM", "SD卡解压异常..." + e.getMessage());
+                        e.printStackTrace();
+                    }
+
+                    pd.dismiss(); //结束掉进度条对话框
+
+                    new Thread() {
+                        public void run() {
+
+                            for (int i = 0; i < 5; i++) {
+                                try {
+                                    sleep(1 * 300);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                                Log.d("LM", "开始刷新HTML  " + i);
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+
+                                        mWebView.reload();
+                                    }
+                                });
+                                Log.d("LM", "完成刷新HTML  " + i);
+                            }
+                        }
+                    }.start();
+                } catch (Exception e) {
+
+                    Log.d("", "run: ");
+                }
+            }
+        }.start();
+    }
+
+    // 下载进度时，点击屏幕不可取消
+    private DialogInterface.OnKeyListener onKeyListener = new DialogInterface.OnKeyListener() {
+        @Override
+        public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+            if (keyCode == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_DOWN) {
+
+            }
+            return false;
+        }
+    };
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -771,7 +922,6 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
         if (null == uploadMessage && null == uploadMessageAboveL) return;
         if (resultCode != RESULT_OK) {//同上所说需要回调onReceiveValue方法防止下次无法响应js方法
 
-            Log.d("LM", "onActivityResult: ----1");
             if (uploadMessageAboveL != null) {
                 uploadMessageAboveL.onReceiveValue(null);
                 uploadMessageAboveL = null;
@@ -783,34 +933,26 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
             return;
         }
 
-        Log.d("LM", "onActivityResult: ----2");
         Uri result = null;
         if (requestCode == FILE_CAMERA_RESULT_CODE) {
-            Log.d("LM", "onActivityResult: ----3" + data);
+
             if (null != data && null != data.getData())
 
-                Log.d("LM", "onActivityResult: ----3.2.0" + result);
-            Log.d("LM", "onActivityResult: ----3.2.1" + cameraFielPath);
             if (result == null && hasFile(cameraFielPath)) {
-                Log.d("LM", "onActivityResult: ----3.2");
+
                 result = Uri.fromFile(new File(cameraFielPath));
             }
             if (uploadMessageAboveL != null) {
-                Log.d("LM", "onActivityResult: ----3.3");
-                Log.d("LM", "onActivityResult: ----3.3.0" + result);
+
                 uploadMessageAboveL.onReceiveValue(new Uri[]{result});
-                Log.d("LM", "onActivityResult: ----3.3.1");
                 uploadMessageAboveL = null;
-                Log.d("LM", "onActivityResult: ----3.3.2");
             } else if (uploadMessage != null) {
 
-                Log.d("LM", "onActivityResult: ----3.4");
                 uploadMessage.onReceiveValue(result);
                 uploadMessage = null;
             }
         } else if (requestCode == FILE_CHOOSER_RESULT_CODE) {
 
-            Log.d("LM", "onActivityResult: ----4");
             if (data != null) {
                 result = data.getData();
             }

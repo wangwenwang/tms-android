@@ -42,9 +42,11 @@ import com.kaidongyuan.app.basemodule.utils.nomalutils.DateUtil;
 import com.kaidongyuan.app.basemodule.widget.MLog;
 import com.kaidongyuan.app.kdydriver.R;
 import com.kaidongyuan.app.kdydriver.app.AppContext;
+import com.kaidongyuan.app.kdydriver.bean.Tools;
 import com.kaidongyuan.app.kdydriver.bean.order.LocationContineTime;
 import com.kaidongyuan.app.kdydriver.bean.order.User;
 import com.kaidongyuan.app.kdydriver.constants.Constants;
+import com.kaidongyuan.app.kdydriver.ui.activity.LoginActivity;
 import com.kaidongyuan.app.kdydriver.utils.LocationFileHelper;
 import com.kaidongyuan.app.kdydriver.utils.SharedPreferencesUtils;
 import com.kaidongyuan.app.kdydriver.utils.baidumapUtils.DataUtil;
@@ -259,67 +261,45 @@ public class TrackingService extends Service {
             Log.d("LM", "进入定位函数" + location.getLocType());
 
 
-            if (location == null) {
+            SharedPreferences readLatLng = getSharedPreferences("w_UserInfo", MODE_MULTI_PROCESS);
+            Log.d("LM", "上传定位点，网络请求1");
+            final String u = readLatLng.getString("UserName", "");
+            final String a = location.getAddrStr();
+            final String lo = location.getLongitude() + "";
+            final String la = location.getLatitude() + "";
+            final String c = location.getLocType() + "";
+            Log.d("LM", "上传定位点，网络请求2");
 
-                if (needClose) {
-                    closeService();
-                }
-                //定位返回空值时，重新定位
-                if (againBoolean){
-                    try {
-                        Thread.sleep(30*1000);
-                        againBoolean=false;
-                        int r=mLocationClient.requestLocation();
-                        MLog.w("定位返回空值时，重新定位:" + r);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-                return;
-            }
-            // 判断定位是否失败应该依据error code的值更加可靠, 上传坐标信息
-            if (!isLocateAvailable(location.getLocType())) {
-                if (needClose) {
-                    closeService();
-                }
-                //定位返回错误码时，重新定位
-               // MLog.w("定位返回错误码"+againBoolean);
-//                if (againBoolean){
-//                    try {
-//                        Thread.sleep(30*1000);
-//                        againBoolean=false;
-//                        int j=mLocationClient.requestLocation();
-//                        MLog.w("定位返回错误码时，重新定位:" + j);
-//                    } catch (InterruptedException e) {
-//                        e.printStackTrace();
-//                    }
-//
-//
-//                }
-//                return;
-            // 20161103 陈翔 调试
-                if (againBoolean){
-                    try {
-                        Thread.sleep(30*1000);
-                        againBoolean=false;
-                        int j=mLocationClient.requestLocation();
-                        MLog.w("定位返回错误码时，重新定位:" + j);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
 
-                    return;
-                }
-                MLog.w("定位返回错误码两次，放弃本次定位");
-                return;
-            }
-            MLog.w( "TrackingService.getLocation:Success\t,mLat:"+mLat+"\tmLng:"+mLng);
             if (mLat == 0 || mLng == 0) {
                 mLat = location.getLatitude();
                 mLng = location.getLongitude();
                 MLog.w( "首次定位"+"mLat:"+mLat+"\tmLng:"+mLng);
                 getlocationReturnCode(location.getLocType(),location.getAddrStr());
                 Log.d("LM", "地址: " + location.getAddrStr());
+
+
+                new Thread() {
+
+                    public void run() {
+
+                        String re = Tools.timingTracking(u, a, lo, la, c);
+                        Log.d("LM", "timingTracking结果: " + re);
+                    }
+                }.start();
+
+
+                Log.d("LM", "cellphone: " + u);
+                Log.d("LM", "userName: " + "");
+                Log.d("LM", "vehicleLocation: " + location.getAddrStr());
+                Log.d("LM", "lon: " + location.getLongitude() + "");
+                Log.d("LM", "lat: " + location.getLatitude() + "");
+                Log.d("LM", "uuid: " + "android");
+                Log.d("LM", "code: " + location.getLocType() + "");
+                Log.d("LM", "brightscreen: " + "1");
+                Log.d("LM", "charging: " + "0");
+                Log.d("LM", "os: " + "7.0");
+
 
                 SharedPreferences p = mContext.getSharedPreferences("CurrLatLng", Context.MODE_PRIVATE);
                 p.edit().putFloat("w_lng", (float) location.getLongitude()).commit();
