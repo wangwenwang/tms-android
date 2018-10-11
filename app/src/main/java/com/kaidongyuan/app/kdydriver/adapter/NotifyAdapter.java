@@ -124,7 +124,6 @@ public class NotifyAdapter extends BaseAdapter {
 			}
 			Date date=DateUtil.getDateTime(StringUtils.StringToTime(notify.getADD_DATE()));
 			holder.tv_notify_date.setText(StringUtils.formatDate(date,"yyyy/MM/dd HH:mm"));
-//		Glide.with(mContext).load("http://china56pd.com:8090/uploadfile/" + notify.getIImage())
 //				.error(R.drawable.ic_hot_normal)
 //				.override(DensityUtil.dip2px(40), DensityUtil.dip2px(40))
 //				.diskCacheStrategy(DiskCacheStrategy.NONE)

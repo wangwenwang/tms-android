@@ -1,11 +1,13 @@
 package com.kaidongyuan.app.kdydriver.bean;
 
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Environment;
 import android.util.Log;
@@ -36,11 +38,17 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
+import me.leefeng.promptlibrary.PromptButton;
+import me.leefeng.promptlibrary.PromptButtonListener;
+import me.leefeng.promptlibrary.PromptDialog;
 
 import static android.content.Context.MODE_MULTI_PROCESS;
 import static android.widget.Toast.LENGTH_LONG;
@@ -289,45 +297,99 @@ public class Tools{
 	 *
 	 * @return
 	 */
-	public static void ToNavigation(String address, Context mContext, String appName) {
-		if (SystemUtil.isInstalled(mContext, "com.autonavi.minimap")) {
-			//跳转到高德导航
-			Intent autoIntent = new Intent();
-			try {
-				autoIntent.setData(Uri
-						.parse("androidamap://route?" +
-								"sourceApplication=" + appName +
-								"&slat=" + "" +
-								"&slon=" + "" +
-								"&dlat=" + "" +
-								"&dlon=" + "" +
-								"&dname=" + address +
-								"&dev=0" +
-								"&m=2" +
-								"&t=0"
-						));
-			}catch (Exception e) {
-				Log.i("LM", "高德地图异常" + e);
-			}
-			mContext.startActivity(autoIntent);
-		}else if (SystemUtil.isInstalled(LoginActivity.mContext,"com.baidu.BaiduMap")){
-			//跳转到百度导航
-			try {
-				Intent baiduintent = Intent.parseUri("intent://map/direction?" +
-						"origin=" + "" +
-						"&destination=" + address +
-						"&mode=driving" +
-						"&src=Name|AppName" +
-						"#Intent;scheme=bdapp;package=com.baidu.BaiduMap;end", 0);
-				mContext.startActivity(baiduintent);
-			} catch (URISyntaxException e) {
-				MLog.d("URISyntaxException : " + e.getMessage());
-				e.printStackTrace();
-			}
-		} else {
-			Toast.makeText(mContext, "未检索到本机已安装‘百度地图’或‘高德地图’App", LENGTH_LONG).show();
-		}
-	}
+	public static void ToNavigation(final String address, final Context mContext, final String appName) {
+
+
+        List list = new ArrayList();
+        if (SystemUtil.isInstalled(mContext, "com.autonavi.minimap")) {
+
+            list.add("高德地图");
+        }
+        if (SystemUtil.isInstalled(mContext, "com.baidu.BaiduMap")) {
+
+            list.add("百度地图");
+        }
+
+        PromptDialog promptDialog = new PromptDialog((Activity) LoginActivity.mContext);
+        promptDialog.getDefaultBuilder().touchAble(true).round(3).loadingDuration(3000);
+
+        PromptButton cancle = new PromptButton("取消", null);
+        cancle.setTextColor(Color.parseColor("#0076ff"));
+        if (list.size() == 2) {
+            promptDialog.showAlertSheet("请选择地图", true, cancle,
+                    new PromptButton("高德地图", new PromptButtonListener() {
+                        @Override
+                        public void onClick(PromptButton button) {
+
+                            Log.d("LM", "调用高德地图");
+                            minimap(mContext, address, appName);
+                        }
+                    }),
+                    new PromptButton("百度地图", new PromptButtonListener() {
+                        @Override
+                        public void onClick(PromptButton button) {
+
+                            Log.d("LM", "调用百度地图");
+                            BaiduMap(mContext, address);
+                        }
+                    })
+            );
+        } else if (list.size() == 1) {
+
+            if (list.get(0).equals("高德地图")) {
+
+                Log.d("LM", "调用高德地图");
+                minimap(mContext, address, appName);
+            } else if (list.get(0).equals("百度地图")) {
+
+                Log.d("LM", "调用百度地图");
+                BaiduMap(mContext, address);
+            }
+        } else {
+
+            Toast.makeText(mContext, "未检索到本机已安装‘百度地图’或‘高德地图’App", LENGTH_LONG).show();
+        }
+    }
+
+
+    private static void minimap(Context mContext, String address, String appName) {
+        //跳转到高德导航
+        Intent autoIntent = new Intent();
+        try {
+            autoIntent.setData(Uri
+                    .parse("androidamap://route?" +
+                            "sourceApplication=" + appName +
+                            "&slat=" + "" +
+                            "&slon=" + "" +
+                            "&dlat=" + "" +
+                            "&dlon=" + "" +
+                            "&dname=" + address +
+                            "&dev=0" +
+                            "&m=2" +
+                            "&t=0"
+                    ));
+        } catch (Exception e) {
+            Log.i("LM", "高德地图异常" + e);
+        }
+        mContext.startActivity(autoIntent);
+    }
+
+    private static void BaiduMap(Context mContext, String address) {
+
+        //跳转到百度导航
+        try {
+            Intent baiduintent = Intent.parseUri("intent://map/direction?" +
+                    "origin=" + "" +
+                    "&destination=" + address +
+                    "&mode=driving" +
+                    "&src=Name|AppName" +
+                    "#Intent;scheme=bdapp;package=com.baidu.BaiduMap;end", 0);
+            mContext.startActivity(baiduintent);
+        } catch (URISyntaxException e) {
+            MLog.d("URISyntaxException : " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 
 
 
@@ -360,7 +422,7 @@ public class Tools{
 		byte[] data = getRequestData(params, "utf-8").toString().getBytes();//获得请求体
 		try {
 
-			URL url = new URL("http://zwlttest.3322.org:8090/tmsApp/timingTracking.do");
+			URL url = new URL("http://119.23.172.113:8086tmsApp/timingTracking.do");
 
 			HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
 			httpURLConnection.setConnectTimeout(5000);     //设置连接超时时间
@@ -556,4 +618,49 @@ public class Tools{
 		SharedPreferences pre_appinfo = mContext.getSharedPreferences("w_AppInfo", MODE_MULTI_PROCESS);
 		pre_appinfo.edit().putString("ZipVersion", CURR_ZIP_VERSION).commit();
 	}
+
+    /**
+     * 获取是否安装使用
+     * @param mContext 上下文
+     * @return
+     */
+    public static String getAppInstallationUsed(Context mContext) {
+
+        SharedPreferences pre_appinfo = mContext.getSharedPreferences("w_AppInfo", MODE_MULTI_PROCESS);
+        return pre_appinfo.getString("InstallationUsed", "");
+    }
+
+    /**
+     * 设置已安装使用
+     * @param mContext 上下文
+     * @throws Exception
+     */
+    public static void setAppInstallationUsed(Context mContext) {
+
+        SharedPreferences pre_appinfo = mContext.getSharedPreferences("w_AppInfo", MODE_MULTI_PROCESS);
+        pre_appinfo.edit().putString("InstallationUsed", "YES").commit();
+    }
+
+
+    /**
+     * 获取上一次启动的版本号
+     * @param mContext 上下文
+     * @return
+     */
+    public static String getAppLastTimeVersion(Context mContext) {
+
+        SharedPreferences pre_appinfo = mContext.getSharedPreferences("w_AppInfo", MODE_MULTI_PROCESS);
+        return pre_appinfo.getString("LastTimeVersion", "");
+    }
+
+    /**
+     * 设置上一次启动的版本号
+     * @param mContext 上下文
+     * @throws Exception
+     */
+    public static void setAppLastTimeVersion(Context mContext) {
+
+        SharedPreferences pre_appinfo = mContext.getSharedPreferences("w_AppInfo", MODE_MULTI_PROCESS);
+        pre_appinfo.edit().putString("LastTimeVersion", LoginActivity.mAppVersion).commit();
+    }
 }

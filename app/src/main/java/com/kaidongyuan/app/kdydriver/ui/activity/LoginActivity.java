@@ -76,6 +76,8 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 
     String appName;
 
+    public static String mAppVersion;
+
     // 微信开放平台APP_ID
     private static final String APP_ID = "wx4c368e3f56d8ace2";
 
@@ -129,6 +131,12 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 
         Log.d("LM", "程序启动");
 
+        try {
+            mAppVersion = getMContext().getPackageManager().getPackageInfo(getMContext().getPackageName(), 0).versionName;
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+
 
         mContext = this;
         unZipOutPath = "/data/data/" + getPackageName() + "/upzip/";
@@ -143,6 +151,8 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 //                Log.i("LM", "点击事件");
 //            }
 //        });
+
+
 
         // 设置ZIP版本号
         String curr_zip_version = Tools.getAppZipVersion(mContext);
@@ -244,18 +254,27 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 
         mLocationClient.start();
 
+
+        // 获取上次启动记录的版本号
+        String lastVersion = Tools.getAppLastTimeVersion(mContext);
+        Log.d("LM", "上次启动记录的版本号1: " + lastVersion);
+
+
         boolean isExists = Tools.fileIsExists("/data/data/" + getPackageName() + "/upzip/dist/index.html");
-        if(isExists) {
+        if(lastVersion.equals(mAppVersion)) {
 
             Log.d("LM", "html已存在，无需解压");
         }else {
 
-            Log.d("LM", "html不存在，开始解压");
+            Log.d("LM", "html不存在或有新版本，开始解压");
             try { Tools.unZip(mContext, "dist.zip", unZipOutPath, true); }
             catch (IOException e) { e.printStackTrace(); }
             Log.d("LM", "解压完成，加载html");
         }
         mWebView.loadUrl("file:///data/data/" + getPackageName() + "/upzip/dist/index.html");
+        Tools.setAppLastTimeVersion(mContext);
+        lastVersion = Tools.getAppLastTimeVersion(mContext);
+        Log.d("LM", "上次启动记录的版本号2: " + lastVersion);
 
         // 启用javascript
         mWebView.getSettings().setJavaScriptEnabled(true);
@@ -342,7 +361,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 //            downUrl = "http://oms.kaidongyuan.com:8888/download/saas-wms.apk";
             if (server_apkVersion!=null && apkDownloadUrl!=null) {
                 try {
-                    String current_apkVersion = getMContext().getPackageManager().getPackageInfo(getMContext().getPackageName(), 0).versionName;
+                    String current_apkVersion = mAppVersion;
                     MLog.w( "server_apkVersion:"+server_apkVersion+"\tcurrent_apkVersion:"+current_apkVersion);
 
                     int compareVersion = Tools.compareVersion(server_apkVersion, current_apkVersion);
@@ -368,7 +387,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                             Log.d("LM", "zip为最新版本");
                         }
                     }
-                } catch (PackageManager.NameNotFoundException e) {
+                } catch (Exception e) {
                     Log.d("LM","NameNotFoundException" + e.getMessage());
                     e.printStackTrace();
                 }
@@ -470,17 +489,28 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                 new Thread() {
                     public void run() {
 
-                        if (!mWxApi.isWXAppInstalled()) {
-                            Log.d("LM", "您还未安装微信客户端");
-                            return;
-                        } else {
-                            Log.d("LM", "微信客户端已安装");
-                        }
-                        SendAuth.Req req = new SendAuth.Req();
-                        req.scope = "snsapi_userinfo";//官方固定写法
-                        req.state = "wechat_sdk_tms";//自定义一个字串
+                        Log.d("LM", "run: uuuu");
 
-                        mWxApi.sendReq(req);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+
+                                Toast.makeText(getMContext(), "uuuu", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+
+
+//                        if (!mWxApi.isWXAppInstalled()) {
+//                            Log.d("LM", "您还未安装微信客户端");
+//                            return;
+//                        } else {
+//                            Log.d("LM", "微信客户端已安装");
+//                        }
+//                        SendAuth.Req req = new SendAuth.Req();
+//                        req.scope = "snsapi_userinfo";//官方固定写法
+//                        req.state = "wechat_sdk_tms";//自定义一个字串
+//
+//                        mWxApi.sendReq(req);
                     }
                 }.start();
             } else if (exceName.equals("登录页面已加载")) {
@@ -499,7 +529,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                         LoginActivity.mWebView.loadUrl(url);
                         Log.d("LM", url);
 
-                        url = "javascript:VersionShow('" + "版本:" + Tools.getVerName(mContext) + "')";
+                        url = "javascript:VersionShow('" + "演示版本:" + Tools.getVerName(mContext) + "')";
                         LoginActivity.mWebView.loadUrl(url);
                         Log.d("LM", url);
 
@@ -549,7 +579,15 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 
                     public void run() {
 
-                        Tools.ToNavigation(inputName, mContext, appName);
+
+
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+
+                                Tools.ToNavigation(inputName, mContext, appName);
+                            }
+                        });
                     }
                 }.start();
             }
@@ -583,6 +621,8 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 
     private void initPermission() {
 
+        Log.d("LM", "申请存储权限");
+
         try {
 
             if (Build.VERSION.SDK_INT>=23){
@@ -606,7 +646,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
         Log.d("LM", "检查apk及zip版本");
         Map<String, String> params = new HashMap<>();
         params.put("params", "{\"tenantCode\":\"KDY\"}");
-        mClient.sendRequest("http://zwlttest.3322.org:8090/tmsApp/queryAppVersion.do", params, TAG_CHECKVERSION);
+        mClient.sendRequest("http://119.23.172.113:8086/tmsApp/queryAppVersion.do", params, TAG_CHECKVERSION);
     }
     private void initHandler() {
         mHandler=new Handler(new Handler.Callback() {
@@ -627,7 +667,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                     }
                     mNotificationManager.cancel(0);
                 } else if (percent==-1) {
-                    Toast.makeText(LoginActivity.this, "下载失败，请查看是否授权App存储权限", Toast.LENGTH_LONG).show();
+                    Toast.makeText(LoginActivity.this, "更新失败，服务器异常", Toast.LENGTH_LONG).show();
                     mNotificationManager.cancel(0);
                 } else{
                     createNotifaction(percent);

@@ -82,7 +82,6 @@ public class NotifyActivity extends BaseActivity implements AsyncHttpCallback {
             }
         });
 
-//		mWebView.loadUrl("http://oms.kaidongyuan.com:8090/");
         WebSettings settings = mWebView.getSettings();
         settings.setDefaultTextEncodingName("UTF-8");
         settings.setBuiltInZoomControls(true); // 设置显示缩放按钮

@@ -198,13 +198,10 @@ public abstract class BaseAsyncHttpClient implements IAsyncHttpLient{
         final String strtag=tag;
         MLog.i(url  );
         if (need_show_dialog){
-            Log.d("LM", "mLoadFile0");
             activityListener.showLoadingDialog();
         }
-        Log.d("LM", "mLoadFile1");
         // 用 get方式请求 下载文件，根据服务器来决定请求方式
         okHttpUtils.get().url(url).tag(strtag).build().execute(new MyFileCallBack(Environment.getExternalStorageDirectory().getAbsolutePath(),destFileName));
-        Log.d("LM", "mLoadFile2");
 
     }
 
