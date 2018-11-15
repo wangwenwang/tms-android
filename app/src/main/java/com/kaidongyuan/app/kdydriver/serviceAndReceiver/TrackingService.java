@@ -18,6 +18,7 @@ import android.os.Build;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.SystemClock;
+import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.view.WindowManager;
 import android.widget.Toast;
@@ -78,7 +79,7 @@ public class TrackingService extends Service {
     //仅GPS定位模式
 //    private LocationMode tempMode = LocationMode.Device_Sensors;
     boolean isLoop = true;
-   private static final double Min_Distance = 300;  // 上传时判断的最小距离
+   private static final double Min_Distance = 0;  // 上传时判断的最小距离
     //测试 2016.07.18
  //    private  static final double Min_Distance=-1;
     private RequestQueue mRequestQueue;
@@ -97,6 +98,9 @@ public class TrackingService extends Service {
     private String locationaddress;//被定义为百度定位返回code码字段
     private boolean againBoolean=true;
     // private PowerManager.WakeLock wakeLock = null;
+
+    // 王文望
+    private boolean isUpload = true; // 是否上传，防止20秒内上传多个点
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -255,20 +259,46 @@ public class TrackingService extends Service {
      */
     private class MyLocationListener implements BDLocationListener {
 
+        @RequiresApi(api = Build.VERSION_CODES.KITKAT_WATCH)
         @Override
         public void onReceiveLocation(BDLocation location) {
 
-            Log.d("LM", "进入定位函数" + location.getLocType());
-
+            Log.d("LM", "进入定位函数");
 
             SharedPreferences readLatLng = getSharedPreferences("w_UserInfo", MODE_MULTI_PROCESS);
-            Log.d("LM", "上传定位点，网络请求1");
             final String u = readLatLng.getString("UserName", "");
             final String a = location.getAddrStr();
             final String lo = location.getLongitude() + "";
             final String la = location.getLatitude() + "";
             final String c = location.getLocType() + "";
-            Log.d("LM", "上传定位点，网络请求2");
+            final String display = Tools.GetDisplayStatus(mContext);
+            final String charging = Tools.GetChargingStatus(mContext);
+            final String os = Build.VERSION.RELEASE + "|" + android.os.Build.MODEL;
+
+            // 地址为null时不上传
+            if(a == null) {
+
+                return;
+            }
+
+            // 上传标识为false时不上传
+            if(isUpload == false) {
+
+                return;
+            }
+
+            // 防止10秒内上传多个点
+            new Thread() {
+                public void run() {
+                    try {
+                        sleep(20 * 1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    isUpload = true;
+                }
+            }.start();
+            isUpload = false;
 
 
             if (mLat == 0 || mLng == 0) {
@@ -278,16 +308,14 @@ public class TrackingService extends Service {
                 getlocationReturnCode(location.getLocType(),location.getAddrStr());
                 Log.d("LM", "地址: " + location.getAddrStr());
 
-
                 new Thread() {
 
                     public void run() {
 
-                        String re = Tools.timingTracking(u, a, lo, la, c);
+                        String re = Tools.timingTracking(u, a, lo, la, c, display, charging, os);
                         Log.d("LM", "timingTracking结果: " + re);
                     }
                 }.start();
-
 
                 Log.d("LM", "cellphone: " + u);
                 Log.d("LM", "userName: " + "");
@@ -296,10 +324,9 @@ public class TrackingService extends Service {
                 Log.d("LM", "lat: " + location.getLatitude() + "");
                 Log.d("LM", "uuid: " + "android");
                 Log.d("LM", "code: " + location.getLocType() + "");
-                Log.d("LM", "brightscreen: " + "1");
-                Log.d("LM", "charging: " + "0");
-                Log.d("LM", "os: " + "7.0");
-
+                Log.d("LM", "brightscreen: " + display);
+                Log.d("LM", "charging: " + charging);
+                Log.d("LM", "os: " + os);
 
                 SharedPreferences p = mContext.getSharedPreferences("CurrLatLng", Context.MODE_PRIVATE);
                 p.edit().putFloat("w_lng", (float) location.getLongitude()).commit();
@@ -307,9 +334,9 @@ public class TrackingService extends Service {
                 p.edit().putString("w_address", location.getAddrStr()).commit();
 
                uploadLocation(mLat, mLng, location.getTime());
-             //   uploadLocation(mLat,mLng,DateUtil.formateWithTime(DateUtil.getDateTime(System.currentTimeMillis()-1000*60*60*24*100)));
-             //  Toast.makeText(mContext,"首次定位，mLat:"+mLat+"\tmLng;"+mLng+location.getTime(),Toast.LENGTH_LONG).show();
             } else {
+
+
                 double lat = location.getLatitude();
                 double lng = location.getLongitude();
                 MLog.w("百度返回码："+location.getLocType()+"||location.lat:"+lat+"\t,lng:"+lng);
@@ -321,9 +348,8 @@ public class TrackingService extends Service {
                     MLog.w(TAG + " :" + mUserId + "--" + lat + "--" + lng + "--" + mContext);
                     getlocationReturnCode(location.getLocType(),location.getAddrStr());
                     uploadLocation(mLat, mLng,location.getTime());
-                 //   uploadLocation(mLat,mLng,DateUtil.formateWithTime(DateUtil.getDateTime(System.currentTimeMillis()-1000*60*24*100)));
-                //Toast.makeText(mContext,"持续定位，mLat:"+mLat+"\tmLng;"+mLng+location.getTime(),Toast.LENGTH_LONG).show();
                 } else {
+
                     MLog.w( "移动距离小于最小上传距离，不上传数据");
                 }
             }
@@ -405,6 +431,8 @@ public class TrackingService extends Service {
                         // 测试 2016.07.18
 //                            if (false){
                             try {
+
+                                Log.d(TAG, "上传位置信息成功，respo: " + mScanSpanTime);
                                 mScanSpanTime =type * 60 * 1000;
                                 mLocationThreadRunning = false;
                                 mThread.interrupt();

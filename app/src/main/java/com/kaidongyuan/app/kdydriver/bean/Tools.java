@@ -5,21 +5,24 @@ import android.app.ActivityManager;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.BatteryManager;
+import android.os.Build;
 import android.os.Environment;
+import android.support.annotation.RequiresApi;
 import android.util.Log;
+import android.view.Display;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.kaidongyuan.app.basemodule.utils.nomalutils.SystemUtil;
 import com.kaidongyuan.app.basemodule.widget.MLog;
+import com.kaidongyuan.app.kdydriver.constants.Constants;
 import com.kaidongyuan.app.kdydriver.ui.activity.LoginActivity;
-
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -34,7 +37,6 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
@@ -51,6 +53,7 @@ import me.leefeng.promptlibrary.PromptButtonListener;
 import me.leefeng.promptlibrary.PromptDialog;
 
 import static android.content.Context.MODE_MULTI_PROCESS;
+import static android.content.Context.WINDOW_SERVICE;
 import static android.widget.Toast.LENGTH_LONG;
 
 public class Tools{
@@ -397,7 +400,7 @@ public class Tools{
 	 * 使用get方式与服务器通信
 	 * @return
 	 */
-	public static String timingTracking(String cellphone, String vehicleLocation, String lon, String lat, String code) {
+	public static String timingTracking(String cellphone, String vehicleLocation, String lon, String lat, String code, String brightscreen, String charging, String os) {
 
 		Log.d("LM", "上传定位点，网络请求");
 
@@ -410,9 +413,9 @@ public class Tools{
 						"\"lat\":\"" + lat + "\"," +
 						"\"uuid\":\"" + "android" + "\"," +
 						"\"code\":\"" + code + "\"," +
-						"\"brightscreen\":\"" + "1" + "\"," +
-						"\"charging\":\"" + "0" + "\"," +
-						"\"os\":\"" + "7.0" + "\"" +
+						"\"brightscreen\":\"" + brightscreen + "\"," +
+						"\"charging\":\"" + charging + "\"," +
+						"\"os\":\"" + os + "\"" +
 				"}";
 
 		Log.d("LM", "params1: " + params1);
@@ -422,7 +425,7 @@ public class Tools{
 		byte[] data = getRequestData(params, "utf-8").toString().getBytes();//获得请求体
 		try {
 
-			URL url = new URL("http://119.23.172.113:8086tmsApp/timingTracking.do");
+			URL url = new URL(Constants.URL.SAAS_API_BASE + "timingTracking.do");
 
 			HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
 			httpURLConnection.setConnectTimeout(5000);     //设置连接超时时间
@@ -663,4 +666,54 @@ public class Tools{
         SharedPreferences pre_appinfo = mContext.getSharedPreferences("w_AppInfo", MODE_MULTI_PROCESS);
         pre_appinfo.edit().putString("LastTimeVersion", LoginActivity.mAppVersion).commit();
     }
+
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT_WATCH)
+	public static String GetDisplayStatus(Context mContext) {
+
+		WindowManager windowManager = (WindowManager) mContext.getSystemService(WINDOW_SERVICE);
+		Display display = windowManager.getDefaultDisplay();
+		int screenState = display.getState();
+		if(screenState == 1) {
+			return "0";
+		}else if(screenState == 2) {
+			return "1";
+		}else{
+			return "2";
+		}
+	}
+
+	public static String GetChargingStatus(Context mContext) {
+
+		IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+		Intent batteryStatus = mContext.registerReceiver(null, ifilter);
+
+		int status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
+		final boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
+				status == BatteryManager.BATTERY_STATUS_FULL;
+
+		int chargePlug = batteryStatus.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
+		final boolean usbCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_USB;
+		final boolean acCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_AC;
+
+		if(isCharging == true) {
+
+			if(usbCharge == true) {
+
+//				Toast.makeText(mContext, "USB", Toast.LENGTH_SHORT).show();
+				return "1";
+			} else if(acCharge == true) {
+
+//				Toast.makeText(mContext, "AC", Toast.LENGTH_SHORT).show();
+				return "2";
+			}else {
+
+//				Toast.makeText(mContext, "未知充电方式", Toast.LENGTH_SHORT).show();
+				return "3";
+			}
+		}else {
+
+//			Toast.makeText(mContext, "未充电", Toast.LENGTH_SHORT).show();
+			return "0";
+		}
+	}
 }

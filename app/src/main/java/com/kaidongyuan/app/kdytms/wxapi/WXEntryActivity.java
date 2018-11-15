@@ -1,4 +1,4 @@
-package com.cy_scm.tms_android.wxapi;
+package com.kaidongyuan.app.kdytms.wxapi;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -161,10 +161,11 @@ public class WXEntryActivity extends Activity implements IWXAPIEventHandler {
      */
     public String bindingWX(String openid){
 
+//        openid = "fds";
+
         String params = "{\"wxOpenid\":\"" + openid + "\"}";
         String paramsEncoding = URLEncoder.encode(params);
         String Strurl = Constants.URL.SAAS_API_BASE + "login.do?params=" + paramsEncoding;
-        Log.d("LM", "函数bindingWX: " + Strurl);
 
         HttpURLConnection conn=null;
         try {

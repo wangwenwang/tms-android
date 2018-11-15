@@ -50,6 +50,7 @@ import com.kaidongyuan.app.basemodule.utils.nomalutils.NetworkUtils;
 import com.kaidongyuan.app.basemodule.widget.MLog;
 import com.kaidongyuan.app.kdydriver.R;
 import com.kaidongyuan.app.kdydriver.bean.Tools;
+import com.kaidongyuan.app.kdydriver.constants.Constants;
 import com.kaidongyuan.app.kdydriver.httpclient.OrderAsyncHttpClient;
 import com.kaidongyuan.app.kdydriver.serviceAndReceiver.TrackingService;
 import com.kaidongyuan.app.kdydriver.ui.base.BaseFragmentActivity;
@@ -79,11 +80,11 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
     public static String mAppVersion;
 
     // 微信开放平台APP_ID
-    private static final String APP_ID = "wx4c368e3f56d8ace2";
+    private static final String APP_ID = Constants.WXLogin_AppID;
 
     static public IWXAPI mWxApi;
 
-    public final static String DestFileName = "saas-tms.apk";
+    public final static String DestFileName = "saas-kdy-tms.apk";
     public final static String ZipFileName = "dist.zip";
 
     String server_App_Version;
@@ -114,10 +115,10 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
     //拍照图片路径
     private String cameraFielPath;
     private Uri mImageUri, mImageUriFromFile;
-    private static final String FILE_PROVIDER_AUTHORITY = "com.cy_scm.tms_android.fileprovider";
+    private static final String FILE_PROVIDER_AUTHORITY = "com.kaidongyuan.app.kdytms.fileprovider";
     // zip解压路径
     String unZipOutPath;
-    private String CURR_ZIP_VERSION = "0.0.0";
+    private String CURR_ZIP_VERSION = "0.0.4";
 
 
     private Intent mLocationIntent;
@@ -168,15 +169,25 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
         mWebView = (WebView) findViewById((R.id.lmwebview));
         mWebView.getSettings().setTextZoom(100);
 
+        // disable scroll on touch
+//        mWebView.setOnTouchListener(new View.OnTouchListener() {
+//            @Override
+//            public boolean onTouch(View v, MotionEvent event) {
+//                return (event.getAction() == MotionEvent.ACTION_MOVE);
+//            }
+//        });
+
 
         LocationClient mLocationClient = new LocationClient(getApplicationContext());
         mWebView.setWebViewClient(new WebViewClient() {
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
+                Log.d("LM", "当前位置: " + url);
             }
 
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
                 super.onPageStarted(view, url, favicon);
+
             }
 
             // js拔打电话
@@ -303,15 +314,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
             mLocationIntent = new Intent(this, TrackingService.class);
         }
         getApplicationContext().startService(mLocationIntent);
-//
-////        try {
-////            Thread.sleep(2000);
-////        } catch (InterruptedException e) {
-////            e.printStackTrace();
-////        }
-////        Log.d("LM", " Thread.sleep(: 2000");
-//
-//
+
         initHandler();
     }
 
@@ -489,28 +492,17 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                 new Thread() {
                     public void run() {
 
-                        Log.d("LM", "run: uuuu");
+                        if (!mWxApi.isWXAppInstalled()) {
+                            Log.d("LM", "您还未安装微信客户端");
+                            return;
+                        } else {
+                            Log.d("LM", "微信客户端已安装");
+                        }
+                        SendAuth.Req req = new SendAuth.Req();
+                        req.scope = "snsapi_userinfo";//官方固定写法
+                        req.state = "wechat_sdk_tms";//自定义一个字串
 
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-
-                                Toast.makeText(getMContext(), "uuuu", Toast.LENGTH_SHORT).show();
-                            }
-                        });
-
-
-//                        if (!mWxApi.isWXAppInstalled()) {
-//                            Log.d("LM", "您还未安装微信客户端");
-//                            return;
-//                        } else {
-//                            Log.d("LM", "微信客户端已安装");
-//                        }
-//                        SendAuth.Req req = new SendAuth.Req();
-//                        req.scope = "snsapi_userinfo";//官方固定写法
-//                        req.state = "wechat_sdk_tms";//自定义一个字串
-//
-//                        mWxApi.sendReq(req);
+                        mWxApi.sendReq(req);
                     }
                 }.start();
             } else if (exceName.equals("登录页面已加载")) {
@@ -529,7 +521,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                         LoginActivity.mWebView.loadUrl(url);
                         Log.d("LM", url);
 
-                        url = "javascript:VersionShow('" + "演示版本:" + Tools.getVerName(mContext) + "')";
+                        url = "javascript:VersionShow('" + "版本:" + Tools.getVerName(mContext) + "')";
                         LoginActivity.mWebView.loadUrl(url);
                         Log.d("LM", url);
 
@@ -646,7 +638,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
         Log.d("LM", "检查apk及zip版本");
         Map<String, String> params = new HashMap<>();
         params.put("params", "{\"tenantCode\":\"KDY\"}");
-        mClient.sendRequest("http://119.23.172.113:8086/tmsApp/queryAppVersion.do", params, TAG_CHECKVERSION);
+        mClient.sendRequest(Constants.URL.SAAS_API_BASE + "queryAppVersion.do", params, TAG_CHECKVERSION);
     }
     private void initHandler() {
         mHandler=new Handler(new Handler.Callback() {
@@ -710,10 +702,18 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
 
+
+        Log.d("LM", "拍照5.8: ");
+
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        Log.d("LM", "拍照5.9: ");
+
 
         if (requestCode == 101) {
 
+
+            Log.d("LM", "拍照5.9.1: ");
             takeCameraM();
         }
     }
@@ -748,18 +748,20 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
     //拍照
     private void takeCamera() {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
         if (hasSDCard()) {
             String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
             String imageFileName = "JPEG_"+timeStamp+"_";
             File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
             File imageFile;
             try {
+
                 imageFile = File.createTempFile(imageFileName,".jpg",storageDir);
                 cameraFielPath = imageFile.getPath();
             } catch (IOException e) {
+
                 e.printStackTrace();
             }
-
             File outputImage = new File(cameraFielPath);
             intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(outputImage));
             startActivityForResult(intent, FILE_CAMERA_RESULT_CODE);
@@ -791,6 +793,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                 takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT,mImageUri);//将用于输出的文件Uri传递给相机
                 startActivityForResult(takePhotoIntent, FILE_CAMERA_RESULT_CODE);//打开相机
             }
+        }else {
         }
     }
 
@@ -856,7 +859,25 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 
         if (keyCode == KeyEvent.KEYCODE_BACK) {
 
+            // 登录页时不允许返回上一页
+            String curURL = mWebView.getUrl();
+            String orgURL = mWebView.getOriginalUrl();
+            if(curURL.equals("file:///data/data/com.kaidongyuan.app.kdytms/upzip/dist/index.html#/")) {
+
+                return false;
+            }
+            // 主菜单时不允许返回上一页
+            if(curURL.indexOf("file:///data/data/com.kaidongyuan.app.kdytms/upzip/dist/index.html#/Waybill?") != -1 ||
+                    curURL.indexOf("file:///data/data/com.kaidongyuan.app.kdytms/upzip/dist/index.html#/CostCount") != -1 ||
+                    curURL.indexOf("file:///data/data/com.kaidongyuan.app.kdytms/upzip/dist/index.html#/historyList") != -1 ||
+                    curURL.indexOf("file:///data/data/com.kaidongyuan.app.kdytms/upzip/dist/index.html#/HomeIndex") != -1
+                    ) {
+
+                return false;
+            }
             mWebView.goBack();
+            Log.d("LM", "curURL: " + curURL);
+            Log.d("LM", "orgURL: " + orgURL);
         }
         return false;
     }
@@ -959,7 +980,9 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
         Log.d("LM", "onActivityResult: ----");
 
         super.onActivityResult(requestCode, resultCode, data);
+
         if (null == uploadMessage && null == uploadMessageAboveL) return;
+
         if (resultCode != RESULT_OK) {//同上所说需要回调onReceiveValue方法防止下次无法响应js方法
 
             if (uploadMessageAboveL != null) {
@@ -970,13 +993,11 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                 uploadMessage.onReceiveValue(null);
                 uploadMessage = null;
             }
-            return;
+             return;
         }
 
         Uri result = null;
         if (requestCode == FILE_CAMERA_RESULT_CODE) {
-
-            if (null != data && null != data.getData())
 
             if (result == null && hasFile(cameraFielPath)) {
 
@@ -985,6 +1006,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
             if (uploadMessageAboveL != null) {
 
                 uploadMessageAboveL.onReceiveValue(new Uri[]{result});
+
                 uploadMessageAboveL = null;
             } else if (uploadMessage != null) {
 

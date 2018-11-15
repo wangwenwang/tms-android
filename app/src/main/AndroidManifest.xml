@@ -57,13 +57,13 @@
         <!--百度-->
         <meta-data
             android:name="com.baidu.lbsapi.API_KEY"
-            android:value="R9gsLKqcUtn9FQqyMDmOjKfrQveKGQ6D" />
+            android:value="PKD0VAebEhFxZyWxpmepgRcL0zGeitjX" />
 
-        <activity android:name=".ui.activity.LoginActivity">
-            <!--android:theme="@android:style/Theme.NoTitleBar.Fullscreen"-->
-            <!--android:configChanges="orientation|screenSize"-->
-            <!--android:screenOrientation="portrait"-->
-            <!--&gt;-->
+        <activity android:name=".ui.activity.LoginActivity"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+            android:configChanges="orientation|screenSize"
+            android:screenOrientation="portrait"
+            >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -76,10 +76,7 @@
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
             android:screenOrientation="portrait"
             />
-        <!--<activity-->
-            <!--android:name="com.kaidongyuan.app.kdydriver.ui.activity.LoginActivity"-->
-            <!--android:screenOrientation="portrait"-->
-            <!--android:windowSoftInputMode="adjustResize|adjustPan" />-->
+
         <activity
             android:name="com.kaidongyuan.app.kdydriver.ui.activity.MainActivity"
             android:configChanges="orientation|screenSize"
@@ -204,9 +201,7 @@
             />
 
 
-        <!--<activity android:name="com.kaidongyuan.app.kdydriver.wxapi.WXEntryActivity" android:exported="true" />-->
-
-        <activity android:name="com.cy_scm.tms_android.wxapi.WXEntryActivity" android:exported="true" />
+        <activity android:name="com.kaidongyuan.app.kdytms.wxapi.WXEntryActivity" android:exported="true" />
 
 </application>
 

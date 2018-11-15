@@ -46,6 +46,9 @@ public class Constants {
     public static final String UserPWD="userPwd";
     public static final String UserCode="useCode";
     public static final String UserType="useType";
+    public static final String WXLogin_AppID="wx011d8094226f8fbc";
+    public static final String WXLogin_AppSecret="2acb3abc7ecdb074960ac039742d60fe";
+
     public class URL {
         //        public static final String Base_Url = "http://192.168.11.19/api/";
         public static final String Test_Url = "http://192.168.11.13/api/";
@@ -175,6 +178,8 @@ public class Constants {
          * 2.5 订单批量交付
          */
         public static final String DriverListPay=Base_Url+"DriverListPay";
-    }
 
+
+        public static  final String SAAS_API_BASE = "http://k56.kaidongyuan.com/tmsApp/";
+    }
 }

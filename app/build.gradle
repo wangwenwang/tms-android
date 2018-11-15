@@ -4,12 +4,11 @@ android {
     compileSdkVersion 24
     buildToolsVersion "24.0.0"
     defaultConfig {
-//        applicationId "com.kaidongyuan.app.kdydriver"
-        applicationId "com.cy_scm.tms_android"
+        applicationId "com.kaidongyuan.app.kdytms"
         minSdkVersion 16
         targetSdkVersion 22
-        versionCode 1
-        versionName "1.0.0"
+        versionCode 12
+        versionName "1.0.8"
         // 使得dex文件代码能突破65535的限制
         multiDexEnabled true
         //APP_ID、APP_KEY、APP_SECRET请根据个推开发者后台申请到的应用参数进行相应替换
@@ -24,17 +23,30 @@ android {
         }
     }
     signingConfigs {
+//        release {
+//            storeFile file('../tms.jks')
+//            storePassword "tms999"
+//            keyAlias "tms"
+//            keyPassword "tms999"
+//        }
+//        debug {
+//            storeFile file('../tms.jks')
+//            storePassword "tms999"
+//            keyAlias "tms"
+//            keyPassword "tms999"
+//        }
+
         release {
-            storeFile file('../tms.jks')
-            storePassword "tms999"
-            keyAlias "tms"
-            keyPassword "tms999"
+            storeFile file('../KDY_Tms.jks')
+            storePassword "kdypwd"
+            keyAlias "KDY_Tms"
+            keyPassword "kdypwd"
         }
         debug {
-            storeFile file('../tms.jks')
-            storePassword "tms999"
-            keyAlias "tms"
-            keyPassword "tms999"
+            storeFile file('../KDY_Tms.jks')
+            storePassword "kdypwd"
+            keyAlias "KDY_Tms"
+            keyPassword "kdypwd"
         }
     }
     buildTypes {
