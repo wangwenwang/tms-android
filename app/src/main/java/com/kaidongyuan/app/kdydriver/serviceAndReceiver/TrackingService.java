@@ -12,6 +12,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
@@ -40,6 +42,7 @@ import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.utils.DistanceUtil;
 
 import com.kaidongyuan.app.basemodule.utils.nomalutils.DateUtil;
+import com.kaidongyuan.app.basemodule.utils.nomalutils.StringUtils;
 import com.kaidongyuan.app.basemodule.widget.MLog;
 import com.kaidongyuan.app.kdydriver.R;
 import com.kaidongyuan.app.kdydriver.app.AppContext;
@@ -253,7 +256,6 @@ public class TrackingService extends Service {
     }
 
 
-
     /**
      * 定位SDK监听函数
      */
@@ -273,7 +275,7 @@ public class TrackingService extends Service {
             final String c = location.getLocType() + "";
             final String display = Tools.GetDisplayStatus(mContext);
             final String charging = Tools.GetChargingStatus(mContext);
-            final String os = Build.VERSION.RELEASE + "|" + android.os.Build.MODEL;
+            final String os = Build.VERSION.RELEASE + "|" + android.os.Build.MODEL + "|" + StringUtils.getVersionName(mContext);
 
             // 地址为null时不上传
             if(a == null) {
@@ -281,23 +283,29 @@ public class TrackingService extends Service {
                 return;
             }
 
+            Log.d("LM", "准备上传: " );
             // 上传标识为false时不上传
             if(isUpload == false) {
 
+                Log.d("LM", "通道被关闭，请等待");
                 return;
             }
+            Log.d("LM", "允许上传: ");
 
-            // 防止10秒内上传多个点
+            // 防止60秒内上传多个点
             new Thread() {
                 public void run() {
                     try {
-                        sleep(20 * 1000);
+                        Log.d("LM", "睡眠20秒，防止重复上传");
+                        sleep(60 * 1000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
+                    Log.d("LM", "解除睡眠，允许上传");
                     isUpload = true;
                 }
             }.start();
+            Log.d("LM", "通过一个坐标，锁住通道");
             isUpload = false;
 
 

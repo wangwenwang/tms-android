@@ -14,9 +14,11 @@ public class Location implements java.io.Serializable {
 	public Double CORDINATEY;
 	public String ADDRESS;
 	public Date CREATETIME;
+	public Double lat;
+	public Double lon;
 
 	@Override
 	public String toString() {
-		return "CORDINATEX:"+CORDINATEX+"\t,CORDINATEY"+CORDINATEY;
+		return "lat:"+lat+"\t,lon"+lon;
 	}
 }

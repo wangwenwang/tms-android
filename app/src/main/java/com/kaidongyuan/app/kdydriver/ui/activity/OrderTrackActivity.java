@@ -2,6 +2,7 @@ package com.kaidongyuan.app.kdydriver.ui.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -49,18 +50,18 @@ public class OrderTrackActivity extends BaseActivity implements AsyncHttpCallbac
     private final String Tag_Get_Locations = "Tag_Get_Locations";
     private OrderAsyncHttpClient mClient;
     BaiduMap mBaiduMap = null;
-    public double distance=0;
-    public  double distance0=0;
-    private int agains=10;//可以重新请求规划路段的次数
+    public double distance = 0;
+    public double distance0 = 0;
+    private int agains = 10;//可以重新请求规划路段的次数
     private RoutePlanSearch mSearch;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ordertrack);
-        mMapView= (MapView) findViewById(R.id.mapView_orderTrack);
-        mBaiduMap=mMapView.getMap();
-        mClient=new OrderAsyncHttpClient(this,this);
+        mMapView = (MapView) findViewById(R.id.mapView_orderTrack);
+        mBaiduMap = mMapView.getMap();
+        mClient = new OrderAsyncHttpClient(this, this);
         mBaiduMap.setMapType(BaiduMap.MAP_TYPE_NONE);
         initview();
         getPath();
@@ -74,20 +75,18 @@ public class OrderTrackActivity extends BaseActivity implements AsyncHttpCallbac
             finish();
             return;
         }
+        Log.d("LM", "获取配载轨迹点，规划路线------");
         Map<String, String> params = new HashMap<String, String>();
-        params.put("strOrderId", orderId);
-        params.put("strLicense", "");
-//        params.put("roleNames", tv_select_role.getText()+"");
+        params.put("shipmentId", orderId);
         mClient.setShowToast(false);
-        mClient.sendRequest(Constants.URL.GetLocaltion, params, Tag_Get_Locations);
+        mClient.sendRequest(Constants.URL.SAAS_API_BASE + "getPathData.do", params, Tag_Get_Locations);
     }
 
     private void initview() {
-        titleView= (SlidingTitleView) findViewById(R.id.slidingtitelView_OrderTrackActivity);
+        titleView = (SlidingTitleView) findViewById(R.id.slidingtitelView_OrderTrackActivity);
         titleView.setMode(SlidingTitleView.MODE_BACK);
         titleView.setText("正规划路线");
     }
-    
 
 
     @Override
@@ -98,7 +97,7 @@ public class OrderTrackActivity extends BaseActivity implements AsyncHttpCallbac
     @Override
     public void onResume() {
         super.onResume();
-        if (mMapView!=null) {
+        if (mMapView != null) {
             mMapView.onResume();
         }
     }
@@ -107,7 +106,7 @@ public class OrderTrackActivity extends BaseActivity implements AsyncHttpCallbac
     public void onPause() {
         super.onPause();
 
-        if (mMapView!=null){
+        if (mMapView != null) {
             mMapView.onPause();
         }
     }
@@ -115,10 +114,10 @@ public class OrderTrackActivity extends BaseActivity implements AsyncHttpCallbac
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (mSearch!=null){
+        if (mSearch != null) {
             mSearch.destroy();
         }
-        if (mMapView!=null){
+        if (mMapView != null) {
             mMapView.onDestroy();
         }
 
@@ -130,26 +129,40 @@ public class OrderTrackActivity extends BaseActivity implements AsyncHttpCallbac
             mBaiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
             showToastMsg("数据加载失败，请退出重进！");
             return;
-        }else if (request_tag.equals(Tag_Get_Locations)){
-            JSONObject jo= JSON.parseObject(msg);
-            List<Location> locationlist=JSON.parseArray(jo.getString("result"),Location.class);
-            if (locationlist==null||locationlist.size()<0){
+        } else if (request_tag.equals(Tag_Get_Locations)) {
+            JSONObject jo = JSON.parseObject(msg);
+            String msglm = jo.getString("Msg");
+            Log.d("LM", "Msg: " + msglm);
+            List<Location> locationlist = JSON.parseArray(jo.getString("pathData"), Location.class);
+            Log.d("LM", "位置点数量: 前");
+            Log.d("LM", "位置点数量: " + locationlist.size());
+            Log.d("LM", "位置点数量: " + locationlist);
+            for (int i = 0; i < locationlist.size(); i++) {
+
+                Location lo = locationlist.get(i);
+                lo.CORDINATEX = lo.lon;
+                lo.CORDINATEY = lo.lat;
+            }
+            Log.d("LM", "位置点数量: " + locationlist);
+            if (locationlist == null || locationlist.size() < 0) {
                 mBaiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
+                Log.d("LM", "位置点数量: 前=====");
                 return;
             }
+            Log.d("LM", "位置点数量: 后");
             //绘制路线
-            for (int i=0;i<locationlist.size()/100;i++){
-                List<Location>locationListfd=locationlist.subList(i*100,i*100+101);
-                searchInMap(locationListfd,0);
+            for (int i = 0; i < locationlist.size() / 100; i++) {
+                List<Location> locationListfd = locationlist.subList(i * 100, i * 100 + 101);
+                searchInMap(locationListfd, 0);
             }
-            List<Location>locationListmr=locationlist.subList(locationlist.size() - locationlist.size() % 100, locationlist.size());
-            searchInMap(locationListmr,1);
+            List<Location> locationListmr = locationlist.subList(locationlist.size() - locationlist.size() % 100, locationlist.size());
+            searchInMap(locationListmr, 1);
             //计算路程，并显示到界面上
             distance0 = getDistance(locationlist);
             MLog.e("直接加两点距离出来的数据：" + distance0);
             //绘制起点和终点的图标
             Location startLocation = locationlist.get(0);
-            Location endLocation = locationlist.get(locationlist.size()-1);
+            Location endLocation = locationlist.get(locationlist.size() - 1);
             LatLng stLatLng = new LatLng(startLocation.CORDINATEY, startLocation.CORDINATEX);
             LatLng enLatLng = new LatLng(endLocation.CORDINATEY, endLocation.CORDINATEX);
             BitmapDescriptor stbitmap = BitmapDescriptorFactory.fromResource(R.drawable.icon_st);
@@ -164,34 +177,34 @@ public class OrderTrackActivity extends BaseActivity implements AsyncHttpCallbac
     }
 
     private double getDistance(List<Location> locationlist) {
-        double distance=0;
-        int size=locationlist.size()-1;
-        for (int i=1;i<size;i++){
-            Location nowLocation=locationlist.get(i);
-            Location perviousLocation = locationlist.get(i-1);
+        double distance = 0;
+        int size = locationlist.size() - 1;
+        for (int i = 1; i < size; i++) {
+            Location nowLocation = locationlist.get(i);
+            Location perviousLocation = locationlist.get(i - 1);
             LatLng nowLatLng = new LatLng(nowLocation.CORDINATEY, nowLocation.CORDINATEX);
             LatLng perviousLatLng = new LatLng(perviousLocation.CORDINATEY, perviousLocation.CORDINATEX);
-            distance += DistanceUtil.getDistance(nowLatLng , perviousLatLng);
+            distance += DistanceUtil.getDistance(nowLatLng, perviousLatLng);
         }
         return distance;
     }
 
     private void searchInMap(final List<Location> locationListfd, int i) {
-        final int again=i;
-        agains=agains-1;
+        final int again = i;
+        agains = agains - 1;
         MLog.e("进入搜索线路方法");
-        if (mBaiduMap==null)return;
-        LatLng stlatlng=new LatLng(locationListfd.get(0).CORDINATEY,locationListfd.get(0).CORDINATEX);
-        LatLng endlatlng=new LatLng(locationListfd.get(locationListfd.size()-1).CORDINATEY,locationListfd.get(locationListfd.size()-1).CORDINATEX);
-        mSearch=RoutePlanSearch.newInstance();
-        PlanNode stNode=PlanNode.withLocation(stlatlng);
-        PlanNode endNode=PlanNode.withLocation(endlatlng);
-        List<PlanNode>passBy=new ArrayList<>();
-        for (int j=1;j<locationListfd.size()-2;j++){
-            passBy.add(PlanNode.withLocation(new LatLng(locationListfd.get(j).CORDINATEY,locationListfd.get(j).CORDINATEX)));
+        if (mBaiduMap == null) return;
+        LatLng stlatlng = new LatLng(locationListfd.get(0).CORDINATEY, locationListfd.get(0).CORDINATEX);
+        LatLng endlatlng = new LatLng(locationListfd.get(locationListfd.size() - 1).CORDINATEY, locationListfd.get(locationListfd.size() - 1).CORDINATEX);
+        mSearch = RoutePlanSearch.newInstance();
+        PlanNode stNode = PlanNode.withLocation(stlatlng);
+        PlanNode endNode = PlanNode.withLocation(endlatlng);
+        List<PlanNode> passBy = new ArrayList<>();
+        for (int j = 1; j < locationListfd.size() - 2; j++) {
+            passBy.add(PlanNode.withLocation(new LatLng(locationListfd.get(j).CORDINATEY, locationListfd.get(j).CORDINATEX)));
         }
-        DrivingRoutePlanOption drivingRoutePlanOption=new DrivingRoutePlanOption().from(stNode).passBy(passBy).to(endNode).policy(DrivingRoutePlanOption.DrivingPolicy.ECAR_DIS_FIRST);
-        OnGetRoutePlanResultListener listener=new OnGetRoutePlanResultListener() {
+        DrivingRoutePlanOption drivingRoutePlanOption = new DrivingRoutePlanOption().from(stNode).passBy(passBy).to(endNode).policy(DrivingRoutePlanOption.DrivingPolicy.ECAR_DIS_FIRST);
+        OnGetRoutePlanResultListener listener = new OnGetRoutePlanResultListener() {
             @Override
             public void onGetWalkingRouteResult(WalkingRouteResult walkingRouteResult) {
                 //获取步行线路规划结果
@@ -206,42 +219,42 @@ public class OrderTrackActivity extends BaseActivity implements AsyncHttpCallbac
             public void onGetDrivingRouteResult(DrivingRouteResult drivingRouteResult) {
                 //获取驾车线路规划结果
                 MLog.e("驾车线路规划结果:onGetDrivingRouteResult");
-                if (mMapView==null||!mMapView.isShown()){
+                if (mMapView == null || !mMapView.isShown()) {
                     return;
                 }
-              if (drivingRouteResult==null||drivingRouteResult.error!= SearchResult.ERRORNO.NO_ERROR){
-                  MLog.e("error:" + "抱歉，未找到结果");
-                  if (!OrderTrackActivity.this.isFinishing()&&agains>0){
-                      searchInMap(locationListfd,again);
-                      titleView.setText("查询路线中");
-                  }
-                  if (again==1){
-                      mBaiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
-                  }
-                  return;
-              }
-                if (drivingRouteResult.error == SearchResult.ERRORNO.AMBIGUOUS_ROURE_ADDR) {
-                    MLog.e("error:" + drivingRouteResult.getSuggestAddrInfo().toString());
-                    if (again==1){
+                if (drivingRouteResult == null || drivingRouteResult.error != SearchResult.ERRORNO.NO_ERROR) {
+                    MLog.e("error:" + "抱歉，未找到结果");
+                    if (!OrderTrackActivity.this.isFinishing() && agains > 0) {
+                        searchInMap(locationListfd, again);
+                        titleView.setText("查询路线中");
+                    }
+                    if (again == 1) {
                         mBaiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
                     }
                     return;
-                }  else if (drivingRouteResult.error==SearchResult.ERRORNO.NO_ERROR){
+                }
+                if (drivingRouteResult.error == SearchResult.ERRORNO.AMBIGUOUS_ROURE_ADDR) {
+                    MLog.e("error:" + drivingRouteResult.getSuggestAddrInfo().toString());
+                    if (again == 1) {
+                        mBaiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
+                    }
+                    return;
+                } else if (drivingRouteResult.error == SearchResult.ERRORNO.NO_ERROR) {
                     MLog.d("onGetDrivingRouteResult no error");
-                    DrivingRouteOverlay overlay=new MyDrivingRouteOverlay(mBaiduMap);
-                    distance+=drivingRouteResult.getRouteLines().get(0).getDistance();
-                    titleView.setText(distance0>distance?titleView.getText():("公里数："+distance/1000+"公里"));
-                    MLog.e("驾车规划出来的数据："+distance/1000 + "公里");
+                    DrivingRouteOverlay overlay = new MyDrivingRouteOverlay(mBaiduMap);
+                    distance += drivingRouteResult.getRouteLines().get(0).getDistance();
+                    titleView.setText(distance0 > distance ? titleView.getText() : ("公里数：" + distance / 1000 + "公里"));
+                    MLog.e("驾车规划出来的数据：" + distance / 1000 + "公里");
                     overlay.setData(drivingRouteResult.getRouteLines().get(0));
                     overlay.addToMap();
-                    if (again==1){
+                    if (again == 1) {
                         mBaiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
                     }
                     overlay.zoomToSpan();
                     mSearch.destroy();
                     return;
                 }
-                if (again==1){
+                if (again == 1) {
                     mBaiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
                 }
             }
@@ -254,20 +267,23 @@ public class OrderTrackActivity extends BaseActivity implements AsyncHttpCallbac
         mSearch.setOnGetRoutePlanResultListener(listener);
         //移动节点至起点
         MLog.e(" 移动节点至起点" + "总计点数" + locationListfd.size());
-        titleView.setText(mSearch.drivingSearch(drivingRoutePlanOption)? "正绘制路线":"路线有误，请重新查看");
+        titleView.setText(mSearch.drivingSearch(drivingRoutePlanOption) ? "正绘制路线" : "路线有误，请重新查看");
     }
+
     //定制RouteOverly
     private class MyDrivingRouteOverlay extends DrivingRouteOverlay {
 
-        private  boolean useDefaultST=false;
-        private  boolean useDefaultEN=false;
+        private boolean useDefaultST = false;
+        private boolean useDefaultEN = false;
+
         public MyDrivingRouteOverlay(BaiduMap baiduMap) {
             super(baiduMap);
         }
-        public  MyDrivingRouteOverlay(BaiduMap baiduMap,boolean stIcon,boolean enIcon){
+
+        public MyDrivingRouteOverlay(BaiduMap baiduMap, boolean stIcon, boolean enIcon) {
             super(baiduMap);
-            useDefaultST=stIcon;
-            useDefaultEN=enIcon;
+            useDefaultST = stIcon;
+            useDefaultEN = enIcon;
         }
 
         @Override
@@ -275,7 +291,7 @@ public class OrderTrackActivity extends BaseActivity implements AsyncHttpCallbac
 //            if (useDefaultST){
 //                return BitmapDescriptorFactory.fromResource(R.drawable.icon_st);
 //            }
-            return  BitmapDescriptorFactory.fromResource(R.drawable.chose_cardwhite);
+            return BitmapDescriptorFactory.fromResource(R.drawable.chose_cardwhite);
         }
 
         @Override
@@ -283,7 +299,7 @@ public class OrderTrackActivity extends BaseActivity implements AsyncHttpCallbac
 //            if (useDefaultEN) {
 //                return BitmapDescriptorFactory.fromResource(R.drawable.icon_en);
 //            }
-            return  BitmapDescriptorFactory.fromResource(R.drawable.chose_cardwhite);
+            return BitmapDescriptorFactory.fromResource(R.drawable.chose_cardwhite);
         }
 
         @Override

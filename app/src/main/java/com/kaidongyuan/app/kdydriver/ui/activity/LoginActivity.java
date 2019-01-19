@@ -118,7 +118,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
     private static final String FILE_PROVIDER_AUTHORITY = "com.kaidongyuan.app.kdytms.fileprovider";
     // zip解压路径
     String unZipOutPath;
-    private String CURR_ZIP_VERSION = "0.0.9";
+    private String CURR_ZIP_VERSION = "0.2.5";
 
 
     private Intent mLocationIntent;
@@ -140,6 +140,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 
 
         mContext = this;
+        //
         unZipOutPath = "/data/data/" + getPackageName() + "/upzip/";
 
 //        Button bt = (Button) findViewById(R.id.button);
@@ -191,7 +192,9 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
             }
 
             // js拔打电话
+            @Override
             public boolean shouldOverrideUrlLoading(WebView view,String url) {
+                Log.d("LM", "------------------------: ");
 
                 if (url.startsWith("mailto:") || url.startsWith("geo:") || url.startsWith("tel:")) {
 
@@ -235,7 +238,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 
             // 处理javascript中的alert
             public boolean onJsAlert(WebView view, String url, String message, final JsResult result) {
-                return true;
+                return false;
             }
 
             // 处理javascript中的confirm
@@ -578,6 +581,27 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                             public void run() {
 
                                 Tools.ToNavigation(inputName, mContext, appName);
+                            }
+                        });
+                    }
+                }.start();
+            } else if (exceName.equals("查看路线")) {
+
+                Log.d("LM", "查看路线");
+
+                new Thread() {
+
+                    public void run() {
+
+
+
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+
+                                Intent intent2=new Intent(LoginActivity.mContext,OrderTrackActivity.class);
+                                intent2.putExtra("order_IDX",inputName);
+                                mContext.startActivity(intent2);
                             }
                         });
                     }

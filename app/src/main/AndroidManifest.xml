@@ -60,7 +60,6 @@
             android:value="PKD0VAebEhFxZyWxpmepgRcL0zGeitjX" />
 
         <activity android:name=".ui.activity.LoginActivity"
-            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
             android:configChanges="orientation|screenSize"
             android:screenOrientation="portrait"
             >
