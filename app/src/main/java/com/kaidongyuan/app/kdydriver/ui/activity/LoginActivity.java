@@ -118,7 +118,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
     private static final String FILE_PROVIDER_AUTHORITY = "com.kaidongyuan.app.kdytms.fileprovider";
     // zip解压路径
     String unZipOutPath;
-    private String CURR_ZIP_VERSION = "0.2.5";
+    private String CURR_ZIP_VERSION = "0.2.6";
 
 
     private Intent mLocationIntent;

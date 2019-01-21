@@ -120,7 +120,7 @@ public class Tools{
 	 *
 	 * @param server 服务器版本号
 	 * @param locati 本地版本号
-	 * @return
+	 * @return   server > locati 返回1，server < locati 返回-1，server 0 locati 返回0
 	 */
 	public static int compareVersion(String server, String locati){
 		if (server.equals(locati)) {
