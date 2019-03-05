@@ -61,6 +61,7 @@ import com.tencent.mm.opensdk.openapi.WXAPIFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -100,7 +101,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
     private Snackbar pmSnackbar;
     private RemoteViews remoteView;
     private MineFragment minefragment;
-    private final int RequestPermission_STATUS_CODE0=8800;
+    private final int RequestPermission_STATUS_CODE0 = 8800;
     private AlertDialog mUpdataVersionDialog;
 
 
@@ -118,7 +119,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
     private static final String FILE_PROVIDER_AUTHORITY = "com.kaidongyuan.app.kdytms.fileprovider";
     // zip解压路径
     String unZipOutPath;
-    private String CURR_ZIP_VERSION = "0.2.6";
+    private String CURR_ZIP_VERSION = "0.2.8";
 
 
     private Intent mLocationIntent;
@@ -155,10 +156,9 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 //        });
 
 
-
         // 设置ZIP版本号
         String curr_zip_version = Tools.getAppZipVersion(mContext);
-        if(curr_zip_version != null && curr_zip_version.equals("")) {
+        if (curr_zip_version != null && curr_zip_version.equals("")) {
 
             Tools.setAppZipVersion(mContext, CURR_ZIP_VERSION);
         }
@@ -193,7 +193,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 
             // js拔打电话
             @Override
-            public boolean shouldOverrideUrlLoading(WebView view,String url) {
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 Log.d("LM", "------------------------: ");
 
                 if (url.startsWith("mailto:") || url.startsWith("geo:") || url.startsWith("tel:")) {
@@ -204,7 +204,6 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                 return true;
             }
         });
-
 
 
         //覆盖WebView默认使用第三方或系统默认浏览器打开网页的行为，使网页用WebView打开
@@ -275,14 +274,17 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 
 
         boolean isExists = Tools.fileIsExists("/data/data/" + getPackageName() + "/upzip/dist/index.html");
-        if(lastVersion.equals(mAppVersion)) {
+        if (lastVersion.equals(mAppVersion)) {
 
             Log.d("LM", "html已存在，无需解压");
-        }else {
+        } else {
 
             Log.d("LM", "html不存在或有新版本，开始解压");
-            try { Tools.unZip(mContext, "dist.zip", unZipOutPath, true); }
-            catch (IOException e) { e.printStackTrace(); }
+            try {
+                Tools.unZip(mContext, "dist.zip", unZipOutPath, true);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             Log.d("LM", "解压完成，加载html");
         }
         mWebView.loadUrl("file:///data/data/" + getPackageName() + "/upzip/dist/index.html");
@@ -319,6 +321,11 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
         getApplicationContext().startService(mLocationIntent);
 
         initHandler();
+
+        uploadLoc();
+
+        SharedPreferences crearPre = mContext.getSharedPreferences("w_UserInfo", MODE_PRIVATE);
+        crearPre.edit().putString("LoginActiveFirstStart", "YES").commit();
     }
 
     private void registToWX() {
@@ -333,21 +340,21 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 
         Log.d("LM", "标签" + request_tag + "请求成功：" + msg);
 
-        if (msg.equals("error")){
+        if (msg.equals("error")) {
             //下载安装包失败
-            if (request_tag.equals(DestFileName)){
-                Message message=mHandler.obtainMessage();
-                message.arg1=-1;
+            if (request_tag.equals(DestFileName)) {
+                Message message = mHandler.obtainMessage();
+                message.arg1 = -1;
                 message.sendToTarget();
                 return;
             }
 
-            if (!NetworkUtils.isNetworkAvailable(getMContext())){
+            if (!NetworkUtils.isNetworkAvailable(getMContext())) {
                 NetworkUtils.setContactNetDialog(getApplication());
                 return;
             }
-        }else if (request_tag.equals(TAG_CHECKVERSION)){
-            JSONObject jo= JSON.parseObject(msg);
+        } else if (request_tag.equals(TAG_CHECKVERSION)) {
+            JSONObject jo = JSON.parseObject(msg);
 
             String status = jo.getString("status");
 
@@ -355,7 +362,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
             String server_apkVersion = null;
             String zipDownloadUrl = null;
             String server_zipVersion = null;
-            if(status.equals("1")) {
+            if (status.equals("1")) {
 
                 JSONObject dict = jo.getJSONObject("data");
                 apkDownloadUrl = dict.getString("downloadUrl");
@@ -365,16 +372,16 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
             }
 
 //            downUrl = "http://oms.kaidongyuan.com:8888/download/saas-wms.apk";
-            if (server_apkVersion!=null && apkDownloadUrl!=null) {
+            if (server_apkVersion != null && apkDownloadUrl != null) {
                 try {
                     String current_apkVersion = mAppVersion;
-                    MLog.w( "server_apkVersion:"+server_apkVersion+"\tcurrent_apkVersion:"+current_apkVersion);
+                    MLog.w("server_apkVersion:" + server_apkVersion + "\tcurrent_apkVersion:" + current_apkVersion);
 
                     int compareVersion = Tools.compareVersion(server_apkVersion, current_apkVersion);
                     if (compareVersion == 1) {
 
                         createUpdateDialog(current_apkVersion, server_apkVersion, apkDownloadUrl);
-                        minefragment.isupdate=true;
+                        minefragment.isupdate = true;
                     } else {
 
                         Log.d("LM", "apk为最新版本");
@@ -388,13 +395,13 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                             CURR_ZIP_VERSION = server_zipVersion;
                             Log.d("LM", "更新zip...");
                             showUpdataZipDialog(zipDownloadUrl);
-                        }else {
+                        } else {
 
                             Log.d("LM", "zip为最新版本");
                         }
                     }
                 } catch (Exception e) {
-                    Log.d("LM","NameNotFoundException" + e.getMessage());
+                    Log.d("LM", "NameNotFoundException" + e.getMessage());
                     e.printStackTrace();
                 }
             }
@@ -404,9 +411,10 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 
     /**
      * 版本更新对话框
+     *
      * @param currentVersion 当前版本versionName
-     * @param version 最新版本versionName
-     * @param downUrl 最新版本安装包下载url
+     * @param version        最新版本versionName
+     * @param downUrl        最新版本安装包下载url
      */
     public void createUpdateDialog(String currentVersion, String version, final String downUrl) {
         if (mUpdataVersionDialog == null) {
@@ -437,13 +445,12 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
     }
 
     /**
-
-    /**
+     * /**
      * 判断 GPS是否开启
      */
     private void checkGpsState() {
-        LocationManager alm= (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-        if( !alm.isProviderEnabled(android.location.LocationManager.GPS_PROVIDER )&&!alm.isProviderEnabled(LocationManager.NETWORK_PROVIDER) ) {
+        LocationManager alm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        if (!alm.isProviderEnabled(android.location.LocationManager.GPS_PROVIDER) && !alm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
             MLog.w("MainActivity.checkGpsState:GpsisOff");
             createCheckGpsDialog();
         } else {
@@ -462,15 +469,15 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
         }, Snackbar.LENGTH_INDEFINITE);
     }
 
-    private void showSnackbar(String strSnackbar, View.OnClickListener listener,int duration) {
+    private void showSnackbar(String strSnackbar, View.OnClickListener listener, int duration) {
 
-        pmSnackbar = Snackbar.make(findViewById(R.id.acitvity_mainAcitivity),strSnackbar,duration);
-        View v= pmSnackbar.getView();
+        pmSnackbar = Snackbar.make(findViewById(R.id.acitvity_mainAcitivity), strSnackbar, duration);
+        View v = pmSnackbar.getView();
         v.setBackgroundColor(getResources().getColor(R.color.details_text));
-        final TextView tv_snackbar= (TextView) v.findViewById(R.id.snackbar_text);
+        final TextView tv_snackbar = (TextView) v.findViewById(R.id.snackbar_text);
         tv_snackbar.setGravity(Gravity.CENTER);
         tv_snackbar.setTextColor(getResources().getColor(R.color.white));
-        pmSnackbar.setAction("设置",listener).show();
+        pmSnackbar.setAction("设置", listener).show();
     }
 
     // js调用java
@@ -575,7 +582,6 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                     public void run() {
 
 
-
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -594,13 +600,12 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                     public void run() {
 
 
-
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
 
-                                Intent intent2=new Intent(LoginActivity.mContext,OrderTrackActivity.class);
-                                intent2.putExtra("order_IDX",inputName);
+                                Intent intent2 = new Intent(LoginActivity.mContext, OrderTrackActivity.class);
+                                intent2.putExtra("order_IDX", inputName);
                                 mContext.startActivity(intent2);
                             }
                         });
@@ -641,18 +646,18 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 
         try {
 
-            if (Build.VERSION.SDK_INT>=23){
+            if (Build.VERSION.SDK_INT >= 23) {
                 if (MPermissionsUtil.checkAndRequestPermissions(LoginActivity.this,
-                        new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,Manifest.permission.ACCESS_FINE_LOCATION,
-                                Manifest.permission.CAMERA,Manifest.permission.WRITE_EXTERNAL_STORAGE}
-                        ,RequestPermission_STATUS_CODE0)){
+                        new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION,
+                                Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}
+                        , RequestPermission_STATUS_CODE0)) {
                     checkVersion();
                 }
-            }else {
+            } else {
 
                 checkVersion();
             }
-        }catch (Exception e) {
+        } catch (Exception e) {
 
             Log.d("LM", "initPermission: " + e.getMessage());
         }
@@ -664,14 +669,15 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
         params.put("params", "{\"tenantCode\":\"KDY\"}");
         mClient.sendRequest(Constants.URL.SAAS_API_BASE + "queryAppVersion.do", params, TAG_CHECKVERSION);
     }
+
     private void initHandler() {
-        mHandler=new Handler(new Handler.Callback() {
+        mHandler = new Handler(new Handler.Callback() {
             @Override
             public boolean handleMessage(Message message) {
-                int percent=message.arg1;
-                if (percent==100){
+                int percent = message.arg1;
+                if (percent == 100) {
                     createNotifaction(percent);
-                    File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath(),DestFileName);
+                    File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath(), DestFileName);
                     if (!file.exists()) {
                         Toast.makeText(getMContext(), "升级包不存在", Toast.LENGTH_SHORT).show();
                     } else {
@@ -682,10 +688,10 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                         startActivity(intent);
                     }
                     mNotificationManager.cancel(0);
-                } else if (percent==-1) {
+                } else if (percent == -1) {
                     Toast.makeText(LoginActivity.this, "更新失败，服务器异常", Toast.LENGTH_LONG).show();
                     mNotificationManager.cancel(0);
-                } else{
+                } else {
                     createNotifaction(percent);
                 }
                 return false;
@@ -695,19 +701,20 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 
     /**
      * 创建下载进度的 notification
+     *
      * @param percent 下载进度
      */
-    private void createNotifaction(int percent){
+    private void createNotifaction(int percent) {
         //自定义 Notification 布局
-        if (mUpdataNotification==null) {
+        if (mUpdataNotification == null) {
             mUpdataNotification = new Notification();
-            mUpdataNotification.icon =R.mipmap.ic_launcher;
-            mUpdataNotification.tickerText =getResources().getText(R.string.app_name);
+            mUpdataNotification.icon = R.mipmap.ic_launcher;
+            mUpdataNotification.tickerText = getResources().getText(R.string.app_name);
         }
-        if (remoteView==null) {
+        if (remoteView == null) {
             remoteView = new RemoteViews(getMContext().getPackageName(), R.layout.dialog_download);
         }
-        remoteView.setTextViewText(R.id.textView_dialog_download, percent+"%");
+        remoteView.setTextViewText(R.id.textView_dialog_download, percent + "%");
         remoteView.setProgressBar(R.id.progressBar_dialog_download, 100, percent, false);
         mUpdataNotification.contentView = remoteView;
         mNotificationManager.notify(0, mUpdataNotification);
@@ -717,8 +724,8 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
     public void setProgressBarLoading(int progress) {
         // super.setProgressBarLoading(progress);
         //改为更新通知栏进度条
-        Message message=mHandler.obtainMessage();
-        message.arg1=progress;
+        Message message = mHandler.obtainMessage();
+        message.arg1 = progress;
         message.sendToTarget();
     }
 
@@ -776,12 +783,12 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 
         if (hasSDCard()) {
             String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-            String imageFileName = "JPEG_"+timeStamp+"_";
+            String imageFileName = "JPEG_" + timeStamp + "_";
             File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
             File imageFile;
             try {
 
-                imageFile = File.createTempFile(imageFileName,".jpg",storageDir);
+                imageFile = File.createTempFile(imageFileName, ".jpg", storageDir);
                 cameraFielPath = imageFile.getPath();
             } catch (IOException e) {
 
@@ -805,34 +812,35 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 
     private void takeCameraM() {
         Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);//打开相机的Intent
-        if(takePhotoIntent.resolveActivity(getPackageManager())!=null){//这句作用是如果没有相机则该应用不会闪退，要是不加这句则当系统没有相机应用的时候该应用会闪退
+        if (takePhotoIntent.resolveActivity(getPackageManager()) != null) {//这句作用是如果没有相机则该应用不会闪退，要是不加这句则当系统没有相机应用的时候该应用会闪退
             File imageFile = createImageFile();//创建用来保存照片的文件
-            if(imageFile!=null){
-                if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.N){
+            if (imageFile != null) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     /*7.0以上要通过FileProvider将File转化为Uri*/
-                    mImageUri = FileProvider.getUriForFile(this,FILE_PROVIDER_AUTHORITY,imageFile);
-                }else {
+                    mImageUri = FileProvider.getUriForFile(this, FILE_PROVIDER_AUTHORITY, imageFile);
+                } else {
                     /*7.0以下则直接使用Uri的fromFile方法将File转化为Uri*/
                     mImageUri = Uri.fromFile(imageFile);
                 }
-                takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT,mImageUri);//将用于输出的文件Uri传递给相机
+                takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);//将用于输出的文件Uri传递给相机
                 startActivityForResult(takePhotoIntent, FILE_CAMERA_RESULT_CODE);//打开相机
             }
-        }else {
+        } else {
         }
     }
 
     /**
      * 创建用来存储图片的文件，以时间来命名就不会产生命名冲突
+     *
      * @return 创建的图片文件
      */
     private File createImageFile() {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "JPEG_"+timeStamp+"_";
+        String imageFileName = "JPEG_" + timeStamp + "_";
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         File imageFile = null;
         try {
-            imageFile = File.createTempFile(imageFileName,".jpg",storageDir);
+            imageFile = File.createTempFile(imageFileName, ".jpg", storageDir);
             cameraFielPath = imageFile.getPath();
         } catch (IOException e) {
             e.printStackTrace();
@@ -887,17 +895,30 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
             // 登录页时不允许返回上一页
             String curURL = mWebView.getUrl();
             String orgURL = mWebView.getOriginalUrl();
-            if(curURL.equals("file:///data/data/com.kaidongyuan.app.kdytms/upzip/dist/index.html#/")) {
+            if (curURL.equals("file:///data/data/com.kaidongyuan.app.kdytms/upzip/dist/index.html#/")) {
 
+                Log.d("LM", "禁止返回上一页1：" + curURL);
                 return false;
             }
+
+            // 首页
+            String Index = "file:///data/data/com.kaidongyuan.app.kdytms/upzip/dist/index.html#/Index";
+            // 任务
+            String Waybill = "file:///data/data/com.kaidongyuan.app.kdytms/upzip/dist/index.html#/Waybill";
+            // 报表
+            String ReportForms = "file:///data/data/com.kaidongyuan.app.kdytms/upzip/dist/index.html#/ReportForms";
+            // 我的
+            String HomeIndex = "file:///data/data/com.kaidongyuan.app.kdytms/upzip/dist/index.html#/HomeIndex";
+
             // 主菜单时不允许返回上一页
-            if(curURL.indexOf("file:///data/data/com.kaidongyuan.app.kdytms/upzip/dist/index.html#/Waybill?") != -1 ||
-                    curURL.indexOf("file:///data/data/com.kaidongyuan.app.kdytms/upzip/dist/index.html#/CostCount") != -1 ||
-                    curURL.indexOf("file:///data/data/com.kaidongyuan.app.kdytms/upzip/dist/index.html#/historyList") != -1 ||
-                    curURL.indexOf("file:///data/data/com.kaidongyuan.app.kdytms/upzip/dist/index.html#/HomeIndex") != -1
+            if (
+                    curURL.indexOf(Index + "?") != -1 || curURL.equals(Index) ||
+                            curURL.indexOf(Waybill + "?") != -1 || curURL.equals(Waybill) ||
+                            curURL.indexOf(ReportForms + "?") != -1 || curURL.equals(ReportForms) ||
+                            curURL.indexOf(HomeIndex + "?") != -1 || curURL.equals(HomeIndex)
                     ) {
 
+                Log.d("LM", "禁止返回上一页2：" + curURL);
                 return false;
             }
             mWebView.goBack();
@@ -910,7 +931,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
     /**
      * 返回桌面
      */
-    private void goHomeActivity(){
+    private void goHomeActivity() {
         Intent home = new Intent(Intent.ACTION_MAIN);
         home.addCategory(Intent.CATEGORY_HOME);
         startActivity(home);
@@ -1018,7 +1039,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                 uploadMessage.onReceiveValue(null);
                 uploadMessage = null;
             }
-             return;
+            return;
         }
 
         Uri result = null;
@@ -1050,5 +1071,130 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                 uploadMessage = null;
             }
         }
+    }
+
+
+
+    private void uploadLoc() {
+
+        new Thread() {
+            public void run() {
+
+                while (true) {
+
+                    // 检查时机
+
+                    // 服务器设定上传时间
+                    SharedPreferences readTime = getSharedPreferences("w_Time", MODE_MULTI_PROCESS);
+                    int serverUploadTime = readTime.getInt("w_scanSpan", Constants.submitSpan);
+
+                    // 上次记录的位置和设备信息
+                    SharedPreferences readLatLng = getSharedPreferences("w_UserInfo", MODE_MULTI_PROCESS);
+                    final String u = readLatLng.getString("UserName", "");
+                    final String a = readLatLng.getString("CurrAddrStr", "");
+                    final String lo = readLatLng.getString("CurrLongitude", "");
+                    final String la = readLatLng.getString("CurrLatitude", "");
+                    final String c = readLatLng.getString("CurrLocType", "");
+                    final String display = readLatLng.getString("CurrDisplay", "");
+                    final String charging = readLatLng.getString("CurrCharging", "");
+                    final String os = readLatLng.getString("CurrOS", "");
+
+
+                    // 当前时间
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+                    String endDate = sdf.format(new Date());
+
+                    // 离上一次上传成功时间
+                    String startDate = readTime.getString("w_lastUploadSuccess", endDate);
+
+
+                    long spanTime = getTimeExpend(startDate, endDate);
+                    Log.d("LM", "startDate: " + startDate);
+                    Log.d("LM", "endDate: " + endDate);
+                    Log.d("LM", "spanTime: " + spanTime);
+                    Log.d("LM", "serverUploadTime: " + serverUploadTime);
+
+                    Log.d("LM", "u: " + u);
+                    Log.d("LM", "a: " + a);
+                    Log.d("LM", "lo: " + lo);
+                    Log.d("LM", "la: " + la);
+                    Log.d("LM", "c: " + c);
+                    Log.d("LM", "display: " + display);
+                    Log.d("LM", "charging: " + charging);
+                    Log.d("LM", "os: " + os);
+
+                    int dealTime = 5000;
+                    Log.d("LM", "延迟" + dealTime / 1000 + "秒");
+                    try {
+                        sleep(dealTime);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                    Log.d("LM", "已间隔：" + spanTime + "，目标：" + serverUploadTime);
+                    if (spanTime < serverUploadTime) {
+
+                        continue;
+                    }
+                    Log.d("LM", "时间间隔通过：");
+
+                    // 设置成功上传位置时间，为当前时间
+//                    readTime.edit().putString("w_lastUploadSuccess", endDate).commit();
+
+                    if (u == null || u.equals("")) {
+
+                        Log.d("LM", "未读取用户信息");
+                        try {
+                            sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        continue;
+                    }
+
+
+                    if (lo.equals("") || la.equals("") ||
+                            lo == null || la == null ||
+                            lo.equals("0") || la.equals("0")
+                            ) {
+
+                        Log.d("LM", "延迟1秒");
+                        try {
+                            sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+
+                        Log.d("LM", "坐标为0，不上传");
+                        continue;
+                    }
+
+                    Log.d("LM", "全部参数已就绪，准备上传");
+
+                    String re =  Tools.timingTracking(u, a, lo, la, c, display, charging, os, mContext);
+                    Log.d("LM", "timingTracking结果: " + re);
+                }
+            }
+        }.start();
+    }
+
+    private long getTimeExpend(String startTime, String endTime){
+        long longStart = getTimeMillis(startTime);
+        long longEnd = getTimeMillis(endTime);
+        long longExpend = longEnd - longStart;
+        return longExpend;
+    }
+
+    private long getTimeMillis(String strTime) {
+        long returnMillis = 0;
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        Date d = null;
+        try {
+            d = sdf.parse(strTime);
+            returnMillis = d.getTime();
+        } catch (ParseException e) {
+            Toast.makeText(LoginActivity.this, e.toString(), Toast.LENGTH_SHORT).show();
+        }
+        return returnMillis;
     }
 }

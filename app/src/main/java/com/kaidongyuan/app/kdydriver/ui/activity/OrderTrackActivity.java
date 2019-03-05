@@ -3,6 +3,7 @@ package com.kaidongyuan.app.kdydriver.ui.activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -137,6 +138,13 @@ public class OrderTrackActivity extends BaseActivity implements AsyncHttpCallbac
             Log.d("LM", "位置点数量: 前");
             Log.d("LM", "位置点数量: " + locationlist.size());
             Log.d("LM", "位置点数量: " + locationlist);
+
+            if(locationlist.size() < 3) {
+
+                showToastMsg("位置点个数为: " + locationlist.size() + "，小于3个点不能规划路线", Toast.LENGTH_LONG);
+                return;
+            }
+
             for (int i = 0; i < locationlist.size(); i++) {
 
                 Location lo = locationlist.get(i);

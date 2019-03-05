@@ -12,10 +12,9 @@ public class Constants {
     /**
      *  发起定位请求的间隔时间
      */
-    public static int scanSpan = 1000 * 60 * 10;
-   //   public static int scanSpan = 1000 * 60 * 1;
+    public static int scanSpan = 1000 * 10;
     // 提交坐标的时间间隔
-    public final static int submitSpan = 10 * 60 * 1000;
+    public final static int submitSpan = 1000 * 60 * 5;
     /**
      * 验证码发送时间间隔
      */

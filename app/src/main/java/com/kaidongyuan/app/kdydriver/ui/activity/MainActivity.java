@@ -7,6 +7,7 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.net.Uri;
@@ -21,6 +22,7 @@ import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
@@ -53,7 +55,10 @@ import com.kaidongyuan.app.kdydriver.ui.widget.IsScrollableViewPager;
 import com.kaidongyuan.app.kdydriver.utils.SharedPreferencesUtils;
 
 import java.io.File;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -83,6 +88,7 @@ public class MainActivity extends BaseFragmentActivity implements AsyncHttpCallb
     private final int RequestPermission_STATUS_CODE0=8800;
     private Snackbar pmSnackbar;
     private PushManager pushManager;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

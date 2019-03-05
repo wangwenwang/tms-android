@@ -10,16 +10,12 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.Message;
-import android.os.SystemClock;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.view.WindowManager;
@@ -41,14 +37,12 @@ import com.baidu.location.LocationClientOption.LocationMode;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.utils.DistanceUtil;
 
-import com.kaidongyuan.app.basemodule.utils.nomalutils.DateUtil;
 import com.kaidongyuan.app.basemodule.utils.nomalutils.StringUtils;
 import com.kaidongyuan.app.basemodule.widget.MLog;
 import com.kaidongyuan.app.kdydriver.R;
 import com.kaidongyuan.app.kdydriver.app.AppContext;
 import com.kaidongyuan.app.kdydriver.bean.Tools;
 import com.kaidongyuan.app.kdydriver.bean.order.LocationContineTime;
-import com.kaidongyuan.app.kdydriver.bean.order.User;
 import com.kaidongyuan.app.kdydriver.constants.Constants;
 import com.kaidongyuan.app.kdydriver.ui.activity.LoginActivity;
 import com.kaidongyuan.app.kdydriver.utils.LocationFileHelper;
@@ -61,6 +55,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static java.lang.Thread.sleep;
 
 /**
  * 后台定位服务
@@ -172,7 +168,7 @@ public class TrackingService extends Service {
                intent.putExtra("AM", "alarmManager");
                PendingIntent pendingIntent = PendingIntent.getService(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
                alarmManager.cancel(pendingIntent);
-               Long triggerAtime = System.currentTimeMillis() + 1000 * 60 * 19;
+               Long triggerAtime = System.currentTimeMillis() + 1000 * 60 * 1;
                //针对不同版本的AndroidSDK,采用不同方法的闹钟唤醒定位服务
                if (Build.VERSION.SDK_INT >= 23) {
                    alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtime , pendingIntent);
@@ -267,8 +263,8 @@ public class TrackingService extends Service {
 
             Log.d("LM", "进入定位函数");
 
-            SharedPreferences readLatLng = getSharedPreferences("w_UserInfo", MODE_MULTI_PROCESS);
-            final String u = readLatLng.getString("UserName", "");
+            SharedPreferences putLatLng = getSharedPreferences("w_UserInfo", MODE_MULTI_PROCESS);
+            final String u = putLatLng.getString("UserName", "");
             final String a = location.getAddrStr();
             final String lo = location.getLongitude() + "";
             final String la = location.getLatitude() + "";
@@ -277,9 +273,57 @@ public class TrackingService extends Service {
             final String charging = Tools.GetChargingStatus(mContext);
             final String os = Build.VERSION.RELEASE + "|" + android.os.Build.MODEL + "|" + StringUtils.getVersionName(mContext);
 
+
+            putLatLng.edit().putString("CurrAddrStr", a).commit();
+            putLatLng.edit().putString("CurrLongitude", lo).commit();
+            putLatLng.edit().putString("CurrLatitude", la).commit();
+            putLatLng.edit().putString("CurrLocType", c).commit();
+            putLatLng.edit().putString("CurrDisplay", display).commit();
+            putLatLng.edit().putString("CurrCharging", charging).commit();
+            putLatLng.edit().putString("CurrOS", os).commit();
+
+
+            // 上次记录的位置和设备信息
+            SharedPreferences readLatLng = getSharedPreferences("w_UserInfo", MODE_PRIVATE);
+            final String u2 = readLatLng.getString("UserName", "");
+            final String a2 = readLatLng.getString("CurrAddrStr", "");
+            final String lo2 = readLatLng.getString("CurrLongitude", "");
+            final String la2 = readLatLng.getString("CurrLatitude", "");
+            final String c2 = readLatLng.getString("CurrLocType", "");
+            final String display2 = readLatLng.getString("CurrDisplay", "");
+            final String charging2 = readLatLng.getString("CurrCharging", "");
+            final String os2 = readLatLng.getString("CurrOS", "");
+
+
+
+            Log.d("LM", "u: " + u2);
+            Log.d("LM", "a: " + a2);
+            Log.d("LM", "lo: " + lo2);
+            Log.d("LM", "la: " + la2);
+            Log.d("LM", "c: " + c2);
+            Log.d("LM", "display: " + display2);
+            Log.d("LM", "charging: " + charging2);
+            Log.d("LM", "os: " + os2);
+            Log.d("LM", "osttt: " + location.getAddrStr());
+            Log.d("LM", "osttt222: " + location.getLongitude());
+
+//            Toast.makeText(mContext, location.getLongitude() + "\n" + a2, Toast.LENGTH_LONG).show();
+
+
             // 地址为null时不上传
             if(a == null) {
 
+                return;
+            }
+
+            if (u == null || u.equals("")) {
+
+                Log.d("LM", "未读取用户信息");
+                try {
+                    sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 return;
             }
 
@@ -320,7 +364,7 @@ public class TrackingService extends Service {
 
                     public void run() {
 
-                        String re = Tools.timingTracking(u, a, lo, la, c, display, charging, os);
+                        String re =  Tools.timingTracking(u, a, lo, la, c, display, charging, os, mContext);
                         Log.d("LM", "timingTracking结果: " + re);
                     }
                 }.start();
@@ -444,7 +488,7 @@ public class TrackingService extends Service {
                                 mScanSpanTime =type * 60 * 1000;
                                 mLocationThreadRunning = false;
                                 mThread.interrupt();
-                                Thread.sleep(15*1000);
+                                sleep(15*1000);
                                 //设置间隔时间后，从新开启定位功能
                                 mLocationClient = new LocationClient(TrackingService.this);
                                 myListener = new MyLocationListener();

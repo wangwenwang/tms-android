@@ -7,8 +7,8 @@ android {
         applicationId "com.kaidongyuan.app.kdytms"
         minSdkVersion 16
         targetSdkVersion 22
-        versionCode 15
-        versionName "1.1.2"
+        versionCode 16
+        versionName "1.1.3"
         // 使得dex文件代码能突破65535的限制
         multiDexEnabled true
         //APP_ID、APP_KEY、APP_SECRET请根据个推开发者后台申请到的应用参数进行相应替换

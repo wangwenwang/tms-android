@@ -39,6 +39,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.text.DecimalFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -53,6 +54,7 @@ import me.leefeng.promptlibrary.PromptButtonListener;
 import me.leefeng.promptlibrary.PromptDialog;
 
 import static android.content.Context.MODE_MULTI_PROCESS;
+import static android.content.Context.MODE_PRIVATE;
 import static android.content.Context.WINDOW_SERVICE;
 import static android.widget.Toast.LENGTH_LONG;
 
@@ -267,26 +269,22 @@ public class Tools{
 	 * @return 分钟
 	 */
 	public static long getTimeExpend(String startTime, String endTime){
-		//传入字串类型 2016-06-28 08:30:00
-		long longStart = getTimeMillis(startTime); //获取开始时间毫秒数
-		long longEnd = getTimeMillis(endTime);  //获取结束时间毫秒数
-		long longExpend = longEnd - longStart;  //获取时间差
-		long longMinutes = longExpend / (60 * 1000);   //根据时间差来计算分钟数
-		return longMinutes;
+		long longStart = getTimeMillis(startTime);
+		long longEnd = getTimeMillis(endTime);
+		long longExpend = longEnd - longStart;
+		return longExpend;
 	}
 
 	private static long getTimeMillis(String strTime) {
 		long returnMillis = 0;
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 		Date d = null;
-
 		try {
 			d = sdf.parse(strTime);
-		} catch (java.text.ParseException e) {
-			e.printStackTrace();
-			Toast.makeText(LoginActivity.mContext, e.toString(), Toast.LENGTH_SHORT).show();
+			returnMillis = d.getTime();
+		} catch (ParseException e) {
+			Log.d("LM", e.toString());
 		}
-		returnMillis = d.getTime();
 		return returnMillis;
 	}
 
@@ -400,9 +398,42 @@ public class Tools{
 	 * 使用get方式与服务器通信
 	 * @return
 	 */
-	public static String timingTracking(String cellphone, String vehicleLocation, String lon, String lat, String code, String brightscreen, String charging, String os) {
+	public static String timingTracking(String cellphone, String vehicleLocation, String lon, String lat, String code, String brightscreen, String charging, String os, Context mContext) {
 
 		Log.d("LM", "上传定位点，网络请求");
+
+		// 当前时间
+		SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+		String endDate2 = sdf2.format(new Date());
+		// 服务器设定上传时间
+
+		SharedPreferences readTime = mContext.getSharedPreferences("w_Time", MODE_MULTI_PROCESS);
+		int serverUploadTime = readTime.getInt("w_scanSpan", Constants.submitSpan);
+
+		// 离上一次上传成功时间
+		String startDate2 = readTime.getString("w_lastUploadSuccess", endDate2);
+		long spanTime = getTimeExpend(startDate2, endDate2);
+		Log.d("LM", "已间隔：" + spanTime + "，目标：" + serverUploadTime);
+
+		SharedPreferences readLatLng = mContext.getSharedPreferences("w_UserInfo", MODE_MULTI_PROCESS);
+		final String LoginActiveFirstStart = readLatLng.getString("LoginActiveFirstStart", "");
+
+		if(LoginActiveFirstStart.equals("YES")) {
+
+			Log.d("LM", "Tools检查通过：第一次打开Activity拥有特权");
+		}else {
+
+			if (spanTime < serverUploadTime) {
+
+				return "Tools检查不通过，提交时间间隔不达标，打回";
+			}
+
+			if (vehicleLocation.equals("") || vehicleLocation == null) {
+
+				return "Tools检查不通过，地址不能为空，打回";
+			}
+			Log.d("LM", "Tools检查通过：");
+		}
 
 		String params1 =
 				"{" +
@@ -445,6 +476,21 @@ public class Tools{
 			if(response == HttpURLConnection.HTTP_OK) {
 				Log.d("LM", "上传位置成功");
 				InputStream inptStream = httpURLConnection.getInputStream();
+
+				// 记录最后一次成功上传位置时间
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+				String startDate = sdf.format(new Date());
+				SharedPreferences p = mContext.getSharedPreferences("w_Time", MODE_PRIVATE);
+				p.edit().putString("w_lastUploadSuccess", startDate).commit();
+
+				// 清空定位坐标
+				SharedPreferences crearPre = mContext.getSharedPreferences("w_UserInfo", MODE_PRIVATE);
+				crearPre.edit().putString("CurrLongitude", "").commit();
+				crearPre.edit().putString("CurrLatitude", "").commit();
+				Log.d("LM", "清空定位坐标");
+				crearPre.edit().putString("LoginActiveFirstStart", "NO").commit();
+				Log.d("LM", "标为不是第一次打开Activty");
+
 				return dealResponseResult(inptStream);                     //处理服务器的响应结果
 			}
 		} catch (IOException e) {
