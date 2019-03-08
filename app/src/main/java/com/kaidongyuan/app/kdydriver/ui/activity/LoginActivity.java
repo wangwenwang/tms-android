@@ -119,7 +119,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
     private static final String FILE_PROVIDER_AUTHORITY = "com.kaidongyuan.app.kdytms.fileprovider";
     // zip解压路径
     String unZipOutPath;
-    private String CURR_ZIP_VERSION = "0.2.8";
+    private String CURR_ZIP_VERSION = "0.3.0";
 
 
     private Intent mLocationIntent;
@@ -132,6 +132,9 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
         setContentView(R.layout.activity_login);
 
         Log.d("LM", "程序启动");
+
+        SharedPreferences putTime = getSharedPreferences(Constants.SP_W_UserInfo_Key, MODE_MULTI_PROCESS);
+        putTime.edit().putString(Constants.SP_BeginRequestUploadLng_Key, Constants.SP_BeginRequestUploadLng_Value_NO).commit();
 
         try {
             mAppVersion = getMContext().getPackageManager().getPackageInfo(getMContext().getPackageName(), 0).versionName;
@@ -324,8 +327,8 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 
         uploadLoc();
 
-        SharedPreferences crearPre = mContext.getSharedPreferences("w_UserInfo", MODE_PRIVATE);
-        crearPre.edit().putString("LoginActiveFirstStart", "YES").commit();
+        SharedPreferences crearPre = mContext.getSharedPreferences(Constants.SP_W_UserInfo_Key, MODE_MULTI_PROCESS);
+        crearPre.edit().putString(Constants.SP_LoginActiveFirstStart_Key, Constants.SP_LoginActiveFirstStart_Value_YES).commit();
     }
 
     private void registToWX() {
@@ -519,7 +522,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 
                 Log.d("LM", "登录页面已加载");
 
-                SharedPreferences readLatLng = mContext.getSharedPreferences("w_UserInfo", MODE_MULTI_PROCESS);
+                SharedPreferences readLatLng = mContext.getSharedPreferences(Constants.SP_W_UserInfo_Key, MODE_MULTI_PROCESS);
                 final String u = readLatLng.getString("UserName", "");
                 final String p = readLatLng.getString("Password", "");
 
@@ -626,7 +629,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 
                 if (u != null && p != null) {
 
-                    SharedPreferences crearPre = mContext.getSharedPreferences("w_UserInfo", MODE_PRIVATE);
+                    SharedPreferences crearPre = mContext.getSharedPreferences(Constants.SP_W_UserInfo_Key, MODE_MULTI_PROCESS);
                     crearPre.edit().putString("UserName", u).commit();
                     crearPre.edit().putString("Password", p).commit();
                     crearPre.edit().putString("Set_User_Pass_Time", curDate).commit();
@@ -1085,19 +1088,18 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                     // 检查时机
 
                     // 服务器设定上传时间
-                    SharedPreferences readTime = getSharedPreferences("w_Time", MODE_MULTI_PROCESS);
-                    int serverUploadTime = readTime.getInt("w_scanSpan", Constants.submitSpan);
+                    SharedPreferences sp = getSharedPreferences(Constants.SP_W_UserInfo_Key, MODE_MULTI_PROCESS);
+                    int serverUploadTime = sp.getInt(Constants.SP_SubmitLngSpan_Key, Constants.SP_SubmitLngSpan_Value_Default);
 
                     // 上次记录的位置和设备信息
-                    SharedPreferences readLatLng = getSharedPreferences("w_UserInfo", MODE_MULTI_PROCESS);
-                    final String u = readLatLng.getString("UserName", "");
-                    final String a = readLatLng.getString("CurrAddrStr", "");
-                    final String lo = readLatLng.getString("CurrLongitude", "");
-                    final String la = readLatLng.getString("CurrLatitude", "");
-                    final String c = readLatLng.getString("CurrLocType", "");
-                    final String display = readLatLng.getString("CurrDisplay", "");
-                    final String charging = readLatLng.getString("CurrCharging", "");
-                    final String os = readLatLng.getString("CurrOS", "");
+                    final String u = sp.getString("UserName", "");
+                    final String a = sp.getString("CurrAddrStr", "");
+                    final String lo = sp.getString("CurrLongitude", "");
+                    final String la = sp.getString("CurrLatitude", "");
+                    final String c = sp.getString("CurrLocType", "");
+                    final String display = sp.getString("CurrDisplay", "");
+                    final String charging = sp.getString("CurrCharging", "");
+                    final String os = sp.getString("CurrOS", "");
 
 
                     // 当前时间
@@ -1105,7 +1107,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                     String endDate = sdf.format(new Date());
 
                     // 离上一次上传成功时间
-                    String startDate = readTime.getString("w_lastUploadSuccess", endDate);
+                    String startDate = sp.getString(Constants.SP_LastUploadLngSuccessDate_Key, endDate);
 
 
                     long spanTime = getTimeExpend(startDate, endDate);
@@ -1138,10 +1140,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                     }
                     Log.d("LM", "时间间隔通过：");
 
-                    // 设置成功上传位置时间，为当前时间
-//                    readTime.edit().putString("w_lastUploadSuccess", endDate).commit();
-
-                    if (u == null || u.equals("")) {
+                    if (u.equals("")) {
 
                         Log.d("LM", "未读取用户信息");
                         try {
@@ -1154,18 +1153,15 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 
 
                     if (lo.equals("") || la.equals("") ||
-                            lo == null || la == null ||
                             lo.equals("0") || la.equals("0")
                             ) {
 
-                        Log.d("LM", "延迟1秒");
+                        Log.d("LM", "坐标为0，不上传");
                         try {
                             sleep(1000);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
-
-                        Log.d("LM", "坐标为0，不上传");
                         continue;
                     }
 

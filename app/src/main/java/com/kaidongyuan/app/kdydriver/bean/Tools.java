@@ -402,38 +402,62 @@ public class Tools{
 
 		Log.d("LM", "上传定位点，网络请求");
 
+		SharedPreferences sp = mContext.getSharedPreferences(Constants.SP_W_UserInfo_Key, MODE_MULTI_PROCESS);
+
 		// 当前时间
 		SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 		String endDate2 = sdf2.format(new Date());
+
 		// 服务器设定上传时间
+		int serverUploadTime = sp.getInt(Constants.SP_SubmitLngSpan_Key, Constants.SP_SubmitLngSpan_Value_Default);
 
-		SharedPreferences readTime = mContext.getSharedPreferences("w_Time", MODE_MULTI_PROCESS);
-		int serverUploadTime = readTime.getInt("w_scanSpan", Constants.submitSpan);
-
-		// 离上一次上传成功时间
-		String startDate2 = readTime.getString("w_lastUploadSuccess", endDate2);
+		// 上一次成功上传坐标的时间
+		String startDate2 = sp.getString(Constants.SP_LastUploadLngSuccessDate_Key, endDate2);
 		long spanTime = getTimeExpend(startDate2, endDate2);
 		Log.d("LM", "已间隔：" + spanTime + "，目标：" + serverUploadTime);
 
-		SharedPreferences readLatLng = mContext.getSharedPreferences("w_UserInfo", MODE_MULTI_PROCESS);
-		final String LoginActiveFirstStart = readLatLng.getString("LoginActiveFirstStart", "");
+		// 离上一次上传成功的坐标
+		String lastLon = sp.getString(Constants.SP_LastUploadLonSuccess_Key, "");
+		String lastLat = sp.getString(Constants.SP_LastUploadLatSuccess_Key, "");
+		Log.d("LM", "上次上传成功坐标：" + lastLon + "，" + lastLat);
 
-		if(LoginActiveFirstStart.equals("YES")) {
+		// 是否有上传坐标任务
+		String isHasUploadTask = sp.getString(Constants.SP_BeginRequestUploadLng_Key, Constants.SP_BeginRequestUploadLng_Value_NO);
+		Log.d("LM", "是否有上传任务 ：" + isHasUploadTask);
+
+		final String LoginActiveFirstStart = sp.getString(Constants.SP_LoginActiveFirstStart_Key, "");
+
+		if ((spanTime < serverUploadTime) && LoginActiveFirstStart.equals(Constants.SP_LoginActiveFirstStart_Value_NO)) {
+
+			return "Tools检查不通过，提交时间间隔不达标，打回";
+		}
+
+		if(LoginActiveFirstStart.equals(Constants.SP_LoginActiveFirstStart_Value_YES)) {
 
 			Log.d("LM", "Tools检查通过：第一次打开Activity拥有特权");
-		}else {
-
-			if (spanTime < serverUploadTime) {
-
-				return "Tools检查不通过，提交时间间隔不达标，打回";
-			}
-
-			if (vehicleLocation.equals("") || vehicleLocation == null) {
-
-				return "Tools检查不通过，地址不能为空，打回";
-			}
-			Log.d("LM", "Tools检查通过：");
 		}
+
+		if (vehicleLocation.equals("")) {
+
+			return "Tools检查不通过，地址不能为空，打回";
+		}
+
+		if (lon.equals(lastLon) || lat.equals(lastLat)) {
+
+			return "Tools检查不通过，坐标与上次成功上传相同，打回";
+		}else{
+
+			Log.d("LM", "Tools检查通过: " + lon + "=" + lastLon + "，" + lat + "=" + lastLat);
+		}
+
+		if (isHasUploadTask.equals(Constants.SP_BeginRequestUploadLng_Value_YES)) {
+
+			return "Tools检查不通过，已有上传坐标任务，打回";
+		}
+
+		Log.d("LM", "Tools检查通过：");
+
+		sp.edit().putString(Constants.SP_BeginRequestUploadLng_Key, Constants.SP_BeginRequestUploadLng_Value_YES).apply();
 
 		String params1 =
 				"{" +
@@ -480,22 +504,33 @@ public class Tools{
 				// 记录最后一次成功上传位置时间
 				SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 				String startDate = sdf.format(new Date());
-				SharedPreferences p = mContext.getSharedPreferences("w_Time", MODE_PRIVATE);
-				p.edit().putString("w_lastUploadSuccess", startDate).commit();
+				sp.edit().putString(Constants.SP_LastUploadLngSuccessDate_Key, startDate).apply();
+				Log.d("LM", "记录最后一次成功上传位置时间");
 
-				// 清空定位坐标
-				SharedPreferences crearPre = mContext.getSharedPreferences("w_UserInfo", MODE_PRIVATE);
-				crearPre.edit().putString("CurrLongitude", "").commit();
-				crearPre.edit().putString("CurrLatitude", "").commit();
-				Log.d("LM", "清空定位坐标");
-				crearPre.edit().putString("LoginActiveFirstStart", "NO").commit();
+				// 记录距离最近的成功上传坐标，用于相同坐标不上传功能
+				sp.edit().putString(Constants.SP_LastUploadLonSuccess_Key, lon).apply();
+				sp.edit().putString(Constants.SP_LastUploadLatSuccess_Key, lat).apply();
+				Log.d("LM", "记录距离最近的成功上传坐标");
+
+				sp.edit().putString(Constants.SP_LoginActiveFirstStart_Key, Constants.SP_LoginActiveFirstStart_Value_NO).apply();
 				Log.d("LM", "标为不是第一次打开Activty");
+
+				sp.edit().putString(Constants.SP_BeginRequestUploadLng_Key, Constants.SP_BeginRequestUploadLng_Value_NO).apply();
+				Log.d("LM", "网络请求标为NO");
+
+				// 清空当前坐标
+				sp.edit().putString(Constants.SP_CurrLon_Key, "").apply();
+				sp.edit().putString(Constants.SP_CurrLat_Key, "").apply();
+				Log.d("LM", "清空当前坐标");
 
 				return dealResponseResult(inptStream);                     //处理服务器的响应结果
 			}
 		} catch (IOException e) {
+
 			//e.printStackTrace();
-			return "err: " + e.getMessage().toString();
+			sp.edit().putString(Constants.SP_BeginRequestUploadLng_Key, Constants.SP_BeginRequestUploadLng_Value_NO).apply();
+			Log.d("LM", "网络请求标为NO");
+			return "err: " + e.getMessage();
 		}
 		return "timingTracking请求结束";
 	}

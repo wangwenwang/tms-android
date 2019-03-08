@@ -263,8 +263,8 @@ public class TrackingService extends Service {
 
             Log.d("LM", "进入定位函数");
 
-            SharedPreferences putLatLng = getSharedPreferences("w_UserInfo", MODE_MULTI_PROCESS);
-            final String u = putLatLng.getString("UserName", "");
+            SharedPreferences sp = getSharedPreferences(Constants.SP_W_UserInfo_Key, MODE_MULTI_PROCESS);
+            final String u = sp.getString("UserName", "");
             final String a = location.getAddrStr();
             final String lo = location.getLongitude() + "";
             final String la = location.getLatitude() + "";
@@ -274,25 +274,24 @@ public class TrackingService extends Service {
             final String os = Build.VERSION.RELEASE + "|" + android.os.Build.MODEL + "|" + StringUtils.getVersionName(mContext);
 
 
-            putLatLng.edit().putString("CurrAddrStr", a).commit();
-            putLatLng.edit().putString("CurrLongitude", lo).commit();
-            putLatLng.edit().putString("CurrLatitude", la).commit();
-            putLatLng.edit().putString("CurrLocType", c).commit();
-            putLatLng.edit().putString("CurrDisplay", display).commit();
-            putLatLng.edit().putString("CurrCharging", charging).commit();
-            putLatLng.edit().putString("CurrOS", os).commit();
+            sp.edit().putString("CurrAddrStr", a).apply();
+            sp.edit().putString("CurrLongitude", lo).apply();
+            sp.edit().putString("CurrLatitude", la).apply();
+            sp.edit().putString("CurrLocType", c).apply();
+            sp.edit().putString("CurrDisplay", display).apply();
+            sp.edit().putString("CurrCharging", charging).apply();
+            sp.edit().putString("CurrOS", os).apply();
 
 
             // 上次记录的位置和设备信息
-            SharedPreferences readLatLng = getSharedPreferences("w_UserInfo", MODE_PRIVATE);
-            final String u2 = readLatLng.getString("UserName", "");
-            final String a2 = readLatLng.getString("CurrAddrStr", "");
-            final String lo2 = readLatLng.getString("CurrLongitude", "");
-            final String la2 = readLatLng.getString("CurrLatitude", "");
-            final String c2 = readLatLng.getString("CurrLocType", "");
-            final String display2 = readLatLng.getString("CurrDisplay", "");
-            final String charging2 = readLatLng.getString("CurrCharging", "");
-            final String os2 = readLatLng.getString("CurrOS", "");
+            final String u2 = sp.getString("UserName", "");
+            final String a2 = sp.getString("CurrAddrStr", "");
+            final String lo2 = sp.getString("CurrLongitude", "");
+            final String la2 = sp.getString("CurrLatitude", "");
+            final String c2 = sp.getString("CurrLocType", "");
+            final String display2 = sp.getString("CurrDisplay", "");
+            final String charging2 = sp.getString("CurrCharging", "");
+            final String os2 = sp.getString("CurrOS", "");
 
 
 
@@ -316,7 +315,7 @@ public class TrackingService extends Service {
                 return;
             }
 
-            if (u == null || u.equals("")) {
+            if (u.equals("")) {
 
                 Log.d("LM", "未读取用户信息");
                 try {
@@ -327,30 +326,30 @@ public class TrackingService extends Service {
                 return;
             }
 
-            Log.d("LM", "准备上传: " );
-            // 上传标识为false时不上传
-            if(isUpload == false) {
-
-                Log.d("LM", "通道被关闭，请等待");
-                return;
-            }
+//            Log.d("LM", "准备上传: " );
+//            // 上传标识为false时不上传
+//            if(isUpload == false) {
+//
+//                Log.d("LM", "通道被关闭，请等待");
+//                return;
+//            }
             Log.d("LM", "允许上传: ");
 
-            // 防止60秒内上传多个点
-            new Thread() {
-                public void run() {
-                    try {
-                        Log.d("LM", "睡眠20秒，防止重复上传");
-                        sleep(60 * 1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    Log.d("LM", "解除睡眠，允许上传");
-                    isUpload = true;
-                }
-            }.start();
-            Log.d("LM", "通过一个坐标，锁住通道");
-            isUpload = false;
+//            // 防止60秒内上传多个点
+//            new Thread() {
+//                public void run() {
+//                    try {
+//                        Log.d("LM", "睡眠20秒，防止重复上传");
+//                        sleep(60 * 1000);
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+//                    Log.d("LM", "解除睡眠，允许上传");
+//                    isUpload = true;
+//                }
+//            }.start();
+//            Log.d("LM", "通过一个坐标，锁住通道");
+//            isUpload = false;
 
 
             if (mLat == 0 || mLng == 0) {

@@ -13,8 +13,6 @@ public class Constants {
      *  发起定位请求的间隔时间
      */
     public static int scanSpan = 1000 * 10;
-    // 提交坐标的时间间隔
-    public final static int submitSpan = 1000 * 60 * 5;
     /**
      * 验证码发送时间间隔
      */
@@ -47,6 +45,30 @@ public class Constants {
     public static final String UserType="useType";
     public static final String WXLogin_AppID="wx011d8094226f8fbc";
     public static final String WXLogin_AppSecret="2acb3abc7ecdb074960ac039742d60fe";
+
+    // SharedPreferences
+
+
+    // 用户信息
+    public static final String SP_W_UserInfo_Key = "SP_W_UserInfo_Key";
+    // 当前坐标
+    public static final String SP_CurrLon_Key = "SP_CurrLon_Key";
+    public static final String SP_CurrLat_Key = "SP_CurrLat_Key";
+    // 开始网络请求上传位置
+    public static final String SP_BeginRequestUploadLng_Key = "SP_beginRequestUploadLng_Key";
+    public static final String SP_BeginRequestUploadLng_Value_YES = "YES";
+    public static final String SP_BeginRequestUploadLng_Value_NO = "NO";
+    // 提交坐标的时间间隔
+    public static final String SP_SubmitLngSpan_Key = "SP_SubmitLngSpan_Key";
+    public final static int SP_SubmitLngSpan_Value_Default = 1000 * 60 * 10;
+    // 上一次成功上传坐标的时间、坐标
+    public static final String SP_LastUploadLngSuccessDate_Key = "SP_LastUploadLngSuccessDate_Key";
+    public static final String SP_LastUploadLonSuccess_Key = "SP_LastUploadLonSuccess_Key";
+    public static final String SP_LastUploadLatSuccess_Key = "SP_LastUploadLatSuccess_Key";
+    // 是否第一次加载 LoginActive
+    public static final String SP_LoginActiveFirstStart_Key = "SP_LoginActiveFirstStart_Key";
+    public static final String SP_LoginActiveFirstStart_Value_YES = "YES";
+    public static final String SP_LoginActiveFirstStart_Value_NO = "NO";
 
     public class URL {
         //        public static final String Base_Url = "http://192.168.11.19/api/";
