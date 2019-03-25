@@ -130,14 +130,14 @@ public class Tools{
 		}
 		String[] version1Array = server.split("\\.");
 		String[] version2Array = locati.split("\\.");
-		Log.d("HomePageActivity", "version1Array==" + version1Array.length);
-		Log.d("HomePageActivity", "version2Array==" + version2Array.length);
+		Log.d("LM", "version1Array==" + version1Array.length);
+		Log.d("LM", "version2Array==" + version2Array.length);
 		int index = 0;
 		// 获取最小长度值
 		int minLen = Math.min(version1Array.length, version2Array.length);
 		int diff = 0;
 		// 循环判断每位的大小
-		Log.d("HomePageActivity", "verTag2=2222=" + version1Array[index]);
+		Log.d("LM", "verTag2=2222=" + version1Array[index]);
 		while (index < minLen
 				&& (diff = Integer.parseInt(version1Array[index])
 				- Integer.parseInt(version2Array[index])) == 0) {

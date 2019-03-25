@@ -139,9 +139,9 @@ public class OrderTrackActivity extends BaseActivity implements AsyncHttpCallbac
             Log.d("LM", "位置点数量: " + locationlist.size());
             Log.d("LM", "位置点数量: " + locationlist);
 
-            if(locationlist.size() < 3) {
+            if(locationlist.size() < 4) {
 
-                showToastMsg("位置点个数为: " + locationlist.size() + "，小于3个点不能规划路线", Toast.LENGTH_LONG);
+                showToastMsg("位置点个数为: " + locationlist.size() + "，小于4个点不能规划路线", Toast.LENGTH_LONG);
                 return;
             }
 

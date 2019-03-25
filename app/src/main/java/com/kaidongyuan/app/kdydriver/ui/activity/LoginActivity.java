@@ -4,10 +4,13 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
+import android.app.Service;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -30,6 +33,7 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.webkit.GeolocationPermissions;
 import android.webkit.JavascriptInterface;
 import android.webkit.JsResult;
@@ -131,6 +135,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        mContext = this;
         Log.d("LM", "程序启动");
 
         SharedPreferences putTime = getSharedPreferences(Constants.SP_W_UserInfo_Key, MODE_MULTI_PROCESS);
@@ -142,8 +147,6 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
             e.printStackTrace();
         }
 
-
-        mContext = this;
         //
         unZipOutPath = "/data/data/" + getPackageName() + "/upzip/";
 
@@ -566,12 +569,15 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 
                 SharedPreferences readLatLng = mContext.getSharedPreferences("CurrLatLng", MODE_MULTI_PROCESS);
                 final String address = readLatLng.getString("w_address", "");
+                final float lng = readLatLng.getFloat("w_lng", 0);
+                final float lat = readLatLng.getFloat("w_lat", 0);
+
 
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
 
-                        String url = "javascript:SetCurrAddress('" + address + "')";
+                        String url = "javascript:SetCurrAddress('" + address + "','" + lng + "','" + lat  + "')";
                         LoginActivity.mWebView.loadUrl(url);
                         Log.d("LM", url);
                     }
@@ -1125,7 +1131,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                     Log.d("LM", "charging: " + charging);
                     Log.d("LM", "os: " + os);
 
-                    int dealTime = 5000;
+                    int dealTime = 3000;
                     Log.d("LM", "延迟" + dealTime / 1000 + "秒");
                     try {
                         sleep(dealTime);
