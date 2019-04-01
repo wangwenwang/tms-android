@@ -69,6 +69,17 @@ public class Constants {
     public static final String SP_LoginActiveFirstStart_Key = "SP_LoginActiveFirstStart_Key";
     public static final String SP_LoginActiveFirstStart_Value_YES = "YES";
     public static final String SP_LoginActiveFirstStart_Value_NO = "NO";
+    // 谁启动的定位服务进程
+    public static final String SP_WhoStartTrackingService_Key = "SP_WhoStartTrackingService_Key";
+    public static final String SP_WhoStartTrackingService_Value_Default = "";
+    public static final String SP_WhoStartTrackingService_Value_1 = "1";
+    public static final String SP_WhoStartTrackingService_Value_2 = "2";
+    public static final String SP_WhoStartTrackingService_Value_3 = "3";
+    public static final String SP_WhoStartTrackingService_Value_4 = "4";
+    public static final String SP_WhoStartTrackingService_Value_5 = "5";
+
+    // 上传延迟，单位ms（毫秒）（防止10秒内上传多个位置点）
+    public static int uploadDelay = 20000;
 
     public class URL {
         //        public static final String Base_Url = "http://192.168.11.19/api/";

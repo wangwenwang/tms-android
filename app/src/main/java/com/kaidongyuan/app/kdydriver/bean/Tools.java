@@ -57,6 +57,7 @@ import static android.content.Context.MODE_MULTI_PROCESS;
 import static android.content.Context.MODE_PRIVATE;
 import static android.content.Context.WINDOW_SERVICE;
 import static android.widget.Toast.LENGTH_LONG;
+import static com.kaidongyuan.app.kdydriver.constants.Constants.SP_WhoStartTrackingService_Value_Default;
 
 public class Tools{
 
@@ -413,7 +414,7 @@ public class Tools{
 
 		// 上一次成功上传坐标的时间
 		String startDate2 = sp.getString(Constants.SP_LastUploadLngSuccessDate_Key, endDate2);
-		long spanTime = getTimeExpend(startDate2, endDate2);
+		long spanTime = getTimeExpend(startDate2, endDate2) + 4000;
 		Log.d("LM", "已间隔：" + spanTime + "，目标：" + serverUploadTime);
 
 		// 离上一次上传成功的坐标
@@ -442,22 +443,23 @@ public class Tools{
 			return "Tools检查不通过，地址不能为空，打回";
 		}
 
-		if (lon.equals(lastLon) || lat.equals(lastLat)) {
-
-			return "Tools检查不通过，坐标与上次成功上传相同，打回";
-		}else{
-
-			Log.d("LM", "Tools检查通过: " + lon + "=" + lastLon + "，" + lat + "=" + lastLat);
-		}
-
 		if (isHasUploadTask.equals(Constants.SP_BeginRequestUploadLng_Value_YES)) {
 
 			return "Tools检查不通过，已有上传坐标任务，打回";
 		}
 
+		if (lon.equals(lastLon) || lat.equals(lastLat)) {
+
+			return "Tools检查不通过，坐标与上次成功上传相同，打回";
+		}
+
 		Log.d("LM", "Tools检查通过：");
 
-		sp.edit().putString(Constants.SP_BeginRequestUploadLng_Key, Constants.SP_BeginRequestUploadLng_Value_YES).apply();
+		String WhoStartTrackingService = sp.getString(Constants.SP_WhoStartTrackingService_Key, SP_WhoStartTrackingService_Value_Default);
+		Log.d("LM", "WhoStartTrackingService: " + WhoStartTrackingService);
+		if(!WhoStartTrackingService.equals("")) {
+			WhoStartTrackingService = "|" + WhoStartTrackingService;
+		}
 
 		String params1 =
 				"{" +
@@ -467,7 +469,7 @@ public class Tools{
 						"\"lon\":\"" + lon + "\"," +
 						"\"lat\":\"" + lat + "\"," +
 						"\"uuid\":\"" + "android" + "\"," +
-						"\"code\":\"" + code + "\"," +
+						"\"code\":\"" + code + WhoStartTrackingService + "\"," +
 						"\"brightscreen\":\"" + brightscreen + "\"," +
 						"\"charging\":\"" + charging + "\"," +
 						"\"os\":\"" + os + "\"" +
@@ -478,6 +480,8 @@ public class Tools{
 		Map<String, String> params = new HashMap<>();
 		params.put("params", params1);
 		byte[] data = getRequestData(params, "utf-8").toString().getBytes();//获得请求体
+
+		sp.edit().putString(Constants.SP_BeginRequestUploadLng_Key, Constants.SP_BeginRequestUploadLng_Value_YES).apply();
 		try {
 
 			URL url = new URL(Constants.URL.SAAS_API_BASE + "timingTracking.do");
@@ -518,11 +522,6 @@ public class Tools{
 				sp.edit().putString(Constants.SP_BeginRequestUploadLng_Key, Constants.SP_BeginRequestUploadLng_Value_NO).apply();
 				Log.d("LM", "网络请求标为NO");
 
-				// 清空当前坐标
-				sp.edit().putString(Constants.SP_CurrLon_Key, "").apply();
-				sp.edit().putString(Constants.SP_CurrLat_Key, "").apply();
-				Log.d("LM", "清空当前坐标");
-
 				return dealResponseResult(inptStream);                     //处理服务器的响应结果
 			}
 		} catch (IOException e) {
@@ -530,6 +529,73 @@ public class Tools{
 			//e.printStackTrace();
 			sp.edit().putString(Constants.SP_BeginRequestUploadLng_Key, Constants.SP_BeginRequestUploadLng_Value_NO).apply();
 			Log.d("LM", "网络请求标为NO");
+			return "err: " + e.getMessage();
+		}
+		return "timingTracking请求结束";
+	}
+
+
+	/**
+	 * 使用get方式与服务器通信
+	 * @return
+	 */
+	public static String timingTracking1(String cellphone, String vehicleLocation, String lon, String lat, String code, String brightscreen, String charging, String os, Context mContext) {
+
+		Log.d("LM", "上传定位点，网络请求,1111");
+
+		SharedPreferences sp = mContext.getSharedPreferences(Constants.SP_W_UserInfo_Key, MODE_MULTI_PROCESS);
+
+		String WhoStartTrackingService = sp.getString(Constants.SP_WhoStartTrackingService_Key, SP_WhoStartTrackingService_Value_Default);
+		Log.d("LM", "WhoStartTrackingService: " + WhoStartTrackingService);
+		if(!WhoStartTrackingService.equals("")) {
+			WhoStartTrackingService = "|" + WhoStartTrackingService;
+		}
+
+		String params1 =
+				"{" +
+						"\"cellphone\":\"" + cellphone + "\"," +
+						"\"userName\":\"" + "" + "\"," +
+						"\"vehicleLocation\":\"" + vehicleLocation + "\"," +
+						"\"lon\":\"" + lon + "\"," +
+						"\"lat\":\"" + lat + "\"," +
+						"\"uuid\":\"" + "android" + "\"," +
+						"\"code\":\"" + code + WhoStartTrackingService + "\"," +
+						"\"brightscreen\":\"" + brightscreen + "\"," +
+						"\"charging\":\"" + charging + "\"," +
+						"\"os\":\"" + os + "\"" +
+						"}";
+
+		Log.d("LM", "params1: " + params1);
+
+		Map<String, String> params = new HashMap<>();
+		params.put("params", params1);
+		byte[] data = getRequestData(params, "utf-8").toString().getBytes();//获得请求体
+		try {
+
+			URL url = new URL(Constants.URL.SAAS_API_BASE + "timingTracking.do");
+
+			HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
+			httpURLConnection.setConnectTimeout(5000);     //设置连接超时时间
+			httpURLConnection.setDoInput(true);                  //打开输入流，以便从服务器获取数据
+			httpURLConnection.setDoOutput(true);                 //打开输出流，以便向服务器提交数据
+			httpURLConnection.setRequestMethod("POST");     //设置以Post方式提交数据
+			httpURLConnection.setUseCaches(false);               //使用Post方式不能使用缓存
+			//设置请求体的类型是文本类型
+			httpURLConnection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+			//设置请求体的长度
+			httpURLConnection.setRequestProperty("Content-Length", String.valueOf(data.length));
+			//获得输出流，向服务器写入数据
+			OutputStream outputStream = httpURLConnection.getOutputStream();
+			outputStream.write(data);
+
+			int response = httpURLConnection.getResponseCode();            //获得服务器的响应码
+			if(response == HttpURLConnection.HTTP_OK) {
+				Log.d("LM", "上传位置成功");
+				InputStream inptStream = httpURLConnection.getInputStream();
+				return dealResponseResult(inptStream);                     //处理服务器的响应结果
+			}
+		} catch (IOException e) {
+
 			return "err: " + e.getMessage();
 		}
 		return "timingTracking请求结束";
