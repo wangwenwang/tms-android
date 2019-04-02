@@ -503,6 +503,10 @@ public class Tools{
 			int response = httpURLConnection.getResponseCode();            //获得服务器的响应码
 			if(response == HttpURLConnection.HTTP_OK) {
 				Log.d("LM", "上传位置成功");
+
+				sp.edit().putString(Constants.SP_BeginRequestUploadLng_Key, Constants.SP_BeginRequestUploadLng_Value_NO).apply();
+				Log.d("LM", "网络请求标为NO");
+
 				InputStream inptStream = httpURLConnection.getInputStream();
 
 				// 记录最后一次成功上传位置时间
@@ -518,9 +522,6 @@ public class Tools{
 
 				sp.edit().putString(Constants.SP_LoginActiveFirstStart_Key, Constants.SP_LoginActiveFirstStart_Value_NO).apply();
 				Log.d("LM", "标为不是第一次打开Activty");
-
-				sp.edit().putString(Constants.SP_BeginRequestUploadLng_Key, Constants.SP_BeginRequestUploadLng_Value_NO).apply();
-				Log.d("LM", "网络请求标为NO");
 
 				return dealResponseResult(inptStream);                     //处理服务器的响应结果
 			}

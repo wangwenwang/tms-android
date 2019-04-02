@@ -1265,6 +1265,9 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                     }
                     Log.d("LM", "timingTracking结果2: " + re);
 
+                    sp.edit().putString(Constants.SP_BeginRequestUploadLng_Key, Constants.SP_BeginRequestUploadLng_Value_NO).apply();
+                    Log.d("LM", "网络请求标为NO");
+
                     //开启后台定位服务
                     if (mLocationIntent == null) {
                         Log.d("LM", "启动位置服务进程5");
