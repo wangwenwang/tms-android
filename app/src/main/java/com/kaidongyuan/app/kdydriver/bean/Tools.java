@@ -14,11 +14,14 @@ import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Environment;
 import android.support.annotation.RequiresApi;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Display;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import com.baidu.mapapi.model.LatLng;
+import com.baidu.mapapi.utils.DistanceUtil;
 import com.kaidongyuan.app.basemodule.utils.nomalutils.SystemUtil;
 import com.kaidongyuan.app.basemodule.widget.MLog;
 import com.kaidongyuan.app.kdydriver.constants.Constants;
@@ -426,6 +429,12 @@ public class Tools{
 		String isHasUploadTask = sp.getString(Constants.SP_BeginRequestUploadLng_Key, Constants.SP_BeginRequestUploadLng_Value_NO);
 		Log.d("LM", "是否有上传任务 ：" + isHasUploadTask);
 
+		double lastlonD = convertToDouble(lastLon, 0.0);
+		double lastlatD = convertToDouble(lastLat, 0.0);
+		double lonD = convertToDouble(lon, 0.0);
+		double latD = convertToDouble(lat, 0.0);
+		double distance = DistanceUtil.getDistance(new LatLng(lastlatD, lastlonD), new LatLng(latD, lonD));
+
 		final String LoginActiveFirstStart = sp.getString(Constants.SP_LoginActiveFirstStart_Key, "");
 
 		if ((spanTime < serverUploadTime) && LoginActiveFirstStart.equals(Constants.SP_LoginActiveFirstStart_Value_NO)) {
@@ -451,6 +460,12 @@ public class Tools{
 		if (lon.equals(lastLon) || lat.equals(lastLat)) {
 
 			return "Tools检查不通过，坐标与上次成功上传相同，打回";
+		}
+
+		// 两定位点距离超过1000公里视为异常定位放弃, distance<1000*50
+		if(distance < 100 || distance > 1000*500) {
+
+			return "Tools检查不通过，距离: " + distance + "，打回";
 		}
 
 		Log.d("LM", "Tools检查通过：");
@@ -863,5 +878,18 @@ public class Tools{
 //			Toast.makeText(mContext, "未充电", Toast.LENGTH_SHORT).show();
 			return "0";
 		}
+	}
+
+	//把String转化为double
+	public static double convertToDouble(String number, double defaultValue) {
+		if (TextUtils.isEmpty(number)) {
+			return defaultValue;
+		}
+		try {
+			return Double.parseDouble(number);
+		} catch (Exception e) {
+			return defaultValue;
+		}
+
 	}
 }

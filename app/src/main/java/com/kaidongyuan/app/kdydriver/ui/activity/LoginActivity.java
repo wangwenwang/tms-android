@@ -127,7 +127,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
     private static final String FILE_PROVIDER_AUTHORITY = "com.kaidongyuan.app.kdytms.fileprovider";
     // zip解压路径
     String unZipOutPath;
-    private String CURR_ZIP_VERSION = "0.3.1";
+    private String CURR_ZIP_VERSION = "0.3.2";
 
 
     private Intent mLocationIntent;
@@ -336,72 +336,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 
         uploadLoc();
 
-        sp.edit().putString(Constants.SP_LoginActiveFirstStart_Key, Constants.SP_LoginActiveFirstStart_Value_YES).commit();
-
-
-        // 监听手机亮屏/灭屏变化
-        final IntentFilter filter = new IntentFilter();
-        // 屏幕灭屏广播
-        filter.addAction(Intent.ACTION_SCREEN_OFF);
-        // 屏幕亮屏广播
-        filter.addAction(Intent.ACTION_SCREEN_ON);
-        // 屏幕解锁广播
-        filter.addAction(Intent.ACTION_USER_PRESENT);
-        // 当长按电源键弹出“关机”对话或者锁屏时系统会发出这个广播
-        // example：有时候会用到系统对话框，权限可能很高，会覆盖在锁屏界面或者“关机”对话框之上，
-        // 所以监听这个广播，当收到时就隐藏自己的对话，如点击pad右下角部分弹出的对话框
-        filter.addAction(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
-
-        BroadcastReceiver mBatInfoReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(final Context context, final Intent intent) {
-                Log.d("LM", "onReceive");
-                String action = intent.getAction();
-
-                String display = "400";
-                if (Intent.ACTION_SCREEN_ON.equals(action)) {
-                    Log.d("LM", "screen on");
-                    display = "2";
-                } else if (Intent.ACTION_SCREEN_OFF.equals(action)) {
-                    Log.d("LM", "screen off");
-                    display = "-1";
-                } else if (Intent.ACTION_USER_PRESENT.equals(action)) {
-                    Log.d("LM", "screen unlock");
-                    display = "3";
-                } else if (Intent.ACTION_CLOSE_SYSTEM_DIALOGS.equals(intent.getAction())) {
-                    Log.i("LM", " receive Intent.ACTION_CLOSE_SYSTEM_DIALOGS");
-                    display = "4";
-                }
-
-                if (mLocationIntent == null) {
-                    Log.d("LM", "启动位置服务进程2");
-                    mLocationIntent = new Intent(mContext, TrackingService.class);
-                    sp.edit().putString(Constants.SP_WhoStartTrackingService_Key, Constants.SP_WhoStartTrackingService_Value_2).commit();
-                    mContext.getApplicationContext().startService(mLocationIntent);
-                }
-
-                // 上次记录的位置和设备信息
-                final String u = sp.getString("UserName", "");
-                final String a = sp.getString("CurrAddrStr", "");
-                final String lo = sp.getString("CurrLongitude", "");
-                final String la = sp.getString("CurrLatitude", "");
-                final String c = sp.getString("CurrLocType", "");
-                final String charging = sp.getString("CurrCharging", "");
-                final String os = sp.getString("CurrOS", "");
-                final String d = display;
-
-                new Thread() {
-
-                    public void run() {
-
-                        String re = Tools.timingTracking(u, a, lo, la, c, d, charging, os, mContext);
-                        Log.d("LM", "timingTracking结果1: " + re);
-                    }
-                }.start();
-            }
-        };
-        Log.d("LM", "registerReceiver");
-        registerReceiver(mBatInfoReceiver, filter);
+        sp.edit().putString(Constants.SP_LoginActiveFirstStart_Key, Constants.SP_LoginActiveFirstStart_Value_YES).apply();
     }
 
     private void registToWX() {
@@ -832,12 +767,12 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 
         AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
         builder.setTitle("拍照/相册");
-        builder.setPositiveButton("相册", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                takePhoto();
-            }
-        });
+//        builder.setPositiveButton("相册", new DialogInterface.OnClickListener() {
+//            @Override
+//            public void onClick(DialogInterface dialog, int which) {
+//                takePhoto();
+//            }
+//        });
         builder.setNegativeButton("拍照", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -1231,7 +1166,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                         if (mLocationIntent == null) {
                             Log.d("LM", "启动位置服务进程4");
                             mLocationIntent = new Intent(mContext, TrackingService.class);
-                            sp.edit().putString(Constants.SP_WhoStartTrackingService_Key, Constants.SP_WhoStartTrackingService_Value_4).commit();
+                            sp.edit().putString(Constants.SP_WhoStartTrackingService_Key, Constants.SP_WhoStartTrackingService_Value_4).apply();
                             mContext.getApplicationContext().startService(mLocationIntent);
                         }
                     }
@@ -1272,7 +1207,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                     if (mLocationIntent == null) {
                         Log.d("LM", "启动位置服务进程5");
                         mLocationIntent = new Intent(mContext, TrackingService.class);
-                        sp.edit().putString(Constants.SP_WhoStartTrackingService_Key, Constants.SP_WhoStartTrackingService_Value_5).commit();
+                        sp.edit().putString(Constants.SP_WhoStartTrackingService_Key, Constants.SP_WhoStartTrackingService_Value_5).apply();
                         mContext.getApplicationContext().startService(mLocationIntent);
                     }
                 }
@@ -1283,8 +1218,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
     private long getTimeExpend(String startTime, String endTime) {
         long longStart = getTimeMillis(startTime);
         long longEnd = getTimeMillis(endTime);
-        long longExpend = longEnd - longStart;
-        return longExpend;
+        return longEnd - longStart;
     }
 
     private long getTimeMillis(String strTime) {

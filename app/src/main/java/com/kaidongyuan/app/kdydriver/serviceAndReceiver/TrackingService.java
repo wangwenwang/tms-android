@@ -78,7 +78,7 @@ public class TrackingService extends Service {
     //仅GPS定位模式
 //    private LocationMode tempMode = LocationMode.Device_Sensors;
     boolean isLoop = true;
-    private static final double Min_Distance = 0;  // 上传时判断的最小距离
+    private static final double Min_Distance = 50;  // 上传时判断的最小距离
     //测试 2016.07.18
     //    private  static final double Min_Distance=-1;
     private RequestQueue mRequestQueue;
@@ -225,6 +225,18 @@ public class TrackingService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
+        final String display = Tools.GetDisplayStatus(mContext);
+        final String charging = Tools.GetChargingStatus(mContext);
+
+
+        new Thread() {
+            public void run() {
+
+                String re = Tools.timingTracking1("13726027405", "中国广东省深圳市宝安区振兴路29号", "114.045309",
+                        "22.626074", "161", display, charging, "ANDROID", mContext);
+            }
+        }.start();
+
         // acquireWakeLock();
         try {
             if (intent.hasExtra("AM")) {
@@ -259,7 +271,6 @@ public class TrackingService extends Service {
      */
     private class MyLocationListener implements BDLocationListener {
 
-        @RequiresApi(api = Build.VERSION_CODES.KITKAT_WATCH)
         @Override
         public void onReceiveLocation(BDLocation location) {
 
@@ -317,6 +328,12 @@ public class TrackingService extends Service {
                 stopLocate();
                 mLocationClient = null;
                 startLocate();
+
+                try {
+                    sleep(1000 * 3);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 return;
             }
 
@@ -651,11 +668,12 @@ public class TrackingService extends Service {
         option.setCoorType(tempcoor);// 返回的定位结果是百度经纬度，默认值gcj02
         option.setLocationMode(tempMode);// 设置定位模式
         option.setScanSpan(mScanSpanTime);//设置上传位置时间间隔
-        option.setIgnoreKillProcess(true);
         //  option.setScanSpan(1*60*1000);
         option.setIsNeedAddress(true);
+        option.setIsNeedLocationDescribe(true);
         option.setOpenGps(true);
         option.setTimeOut(10 * 1000); // 网络定位的超时时间
+        option.setAddrType("all");
         mLocationClient.setLocOption(option);
     }
 
