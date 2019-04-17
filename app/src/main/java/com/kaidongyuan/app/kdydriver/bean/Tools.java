@@ -463,7 +463,7 @@ public class Tools{
 		}
 
 		// 两定位点距离超过1000公里视为异常定位放弃, distance<1000*50
-		if(distance < 100 || distance > 1000*500) {
+		if((distance < 100 || distance > 1000*500) && !LoginActiveFirstStart.equals(Constants.SP_LoginActiveFirstStart_Value_YES)) {
 
 			return "Tools检查不通过，距离: " + distance + "，打回";
 		}

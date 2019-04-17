@@ -229,13 +229,13 @@ public class TrackingService extends Service {
         final String charging = Tools.GetChargingStatus(mContext);
 
 
-        new Thread() {
-            public void run() {
-
-                String re = Tools.timingTracking1("13726027405", "中国广东省深圳市宝安区振兴路29号", "114.045309",
-                        "22.626074", "161", display, charging, "ANDROID", mContext);
-            }
-        }.start();
+//        new Thread() {
+//            public void run() {
+//
+//                String re = Tools.timingTracking1("13726027405", "中国广东省深圳市宝安区振兴路29号", "114.045309",
+//                        "22.626074", "161", display, charging, "ANDROID", mContext);
+//            }
+//        }.start();
 
         // acquireWakeLock();
         try {
