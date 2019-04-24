@@ -661,7 +661,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 
     // 开启定位服务
     private void startServiceLM() {
-        
+
         initPermission();
         //开启后台定位服务
         if (mLocationIntent == null) {

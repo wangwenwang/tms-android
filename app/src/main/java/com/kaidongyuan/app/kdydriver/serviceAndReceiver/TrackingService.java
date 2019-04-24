@@ -221,7 +221,7 @@ public class TrackingService extends Service {
 
                     times ++;
                     Log.d("LM", "定时器执行次数：" + times);
-                    Thread.currentThread().sleep(1000 * 20);
+                    Thread.currentThread().sleep(1000 * 60);
 //                    Thread.currentThread().sleep(mScanSpanTime);
 
                     if (mLocationClient != null && mLocationClient.isStarted()) {
