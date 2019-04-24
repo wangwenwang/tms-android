@@ -51,6 +51,7 @@ import android.widget.Toast;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.baidu.location.LocationClient;
+import com.igexin.sdk.PushManager;
 import com.kaidongyuan.app.basemodule.interfaces.AsyncHttpCallback;
 import com.kaidongyuan.app.basemodule.utils.nomalutils.MPermissionsUtil;
 import com.kaidongyuan.app.basemodule.utils.nomalutils.NetworkUtils;
@@ -60,6 +61,8 @@ import com.kaidongyuan.app.kdydriver.R;
 import com.kaidongyuan.app.kdydriver.bean.Tools;
 import com.kaidongyuan.app.kdydriver.constants.Constants;
 import com.kaidongyuan.app.kdydriver.httpclient.OrderAsyncHttpClient;
+import com.kaidongyuan.app.kdydriver.serviceAndReceiver.GetuiIntentService;
+import com.kaidongyuan.app.kdydriver.serviceAndReceiver.GetuiPushService;
 import com.kaidongyuan.app.kdydriver.serviceAndReceiver.TrackingService;
 import com.kaidongyuan.app.kdydriver.ui.base.BaseFragmentActivity;
 import com.kaidongyuan.app.kdydriver.ui.fragment.MineFragment;
@@ -128,6 +131,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
     // zip解压路径
     String unZipOutPath;
     private String CURR_ZIP_VERSION = "0.3.2";
+    private String WhoCheckVersion;
 
 
     private Intent mLocationIntent;
@@ -143,7 +147,14 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
         Log.d("LM", "程序启动");
 
         final SharedPreferences sp = mContext.getSharedPreferences(Constants.SP_W_UserInfo_Key, MODE_MULTI_PROCESS);
-        sp.edit().putString(Constants.SP_BeginRequestUploadLng_Key, Constants.SP_BeginRequestUploadLng_Value_NO).commit();
+        // 设置开始上传为NO
+        sp.edit().putString(Constants.SP_BeginRequestUploadLng_Key, Constants.SP_BeginRequestUploadLng_Value_NO).apply();
+        // 设置第一次加载LoginActive为YES
+        sp.edit().putString(Constants.SP_LoginActiveFirstStart_Key, Constants.SP_LoginActiveFirstStart_Value_YES).apply();
+        // 设置上次定位为空
+        sp.edit().putString("CurrAddrStr", "").apply();
+        sp.edit().putString("CurrLongitude", "").apply();
+        sp.edit().putString("CurrLatitude", "").apply();
 
         try {
             mAppVersion = getMContext().getPackageManager().getPackageInfo(getMContext().getPackageName(), 0).versionName;
@@ -189,7 +200,6 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 //        });
 
 
-        LocationClient mLocationClient = new LocationClient(getApplicationContext());
         mWebView.setWebViewClient(new WebViewClient() {
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
@@ -275,12 +285,10 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
             }
         });
 
-        mLocationClient.start();
-
 
         // 获取上次启动记录的版本号
         String lastVersion = Tools.getAppLastTimeVersion(mContext);
-        Log.d("LM", "上次启动记录的版本号1: " + lastVersion);
+        Log.d("LM", "上次启动记录的版本号: " + lastVersion);
 
 
         boolean isExists = Tools.fileIsExists("/data/data/" + getPackageName() + "/upzip/dist/index.html");
@@ -300,7 +308,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
         mWebView.loadUrl("file:///data/data/" + getPackageName() + "/upzip/dist/index.html");
         Tools.setAppLastTimeVersion(mContext);
         lastVersion = Tools.getAppLastTimeVersion(mContext);
-        Log.d("LM", "上次启动记录的版本号2: " + lastVersion);
+        Log.d("LM", "上次启动记录的版本号已设置为: " + lastVersion);
 
         // 启用javascript
         mWebView.getSettings().setJavaScriptEnabled(true);
@@ -318,25 +326,9 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
         // 注册微信登录
         registToWX();
 
-
         minefragment = new MineFragment();
         mClient = new OrderAsyncHttpClient(this, this);
         mNotificationManager = (NotificationManager) getMContext().getSystemService(Context.NOTIFICATION_SERVICE);
-        initPermission();
-
-        //开启后台定位服务
-        if (mLocationIntent == null) {
-            Log.d("LM", "启动位置服务进程1");
-            mLocationIntent = new Intent(this, TrackingService.class);
-//            putTime.edit().putString(Constants.SP_WhoStartTrackingService_Key, Constants.SP_WhoStartTrackingService_Value_1).commit();
-        }
-        getApplicationContext().startService(mLocationIntent);
-
-        initHandler();
-
-        uploadLoc();
-
-        sp.edit().putString(Constants.SP_LoginActiveFirstStart_Key, Constants.SP_LoginActiveFirstStart_Value_YES).apply();
     }
 
     private void registToWX() {
@@ -396,6 +388,13 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                     } else {
 
                         Log.d("LM", "apk为最新版本");
+                        if(WhoCheckVersion.equals("vue")) {
+                            AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
+                            builder.setTitle("");
+                            builder.setMessage("已经是最新版本！");
+                            builder.setPositiveButton("确定", null);
+                            builder.show();
+                        }
                         checkGpsState();
 
                         String curr_zipVersion = Tools.getAppZipVersion(mContext);
@@ -492,11 +491,30 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
     }
 
     // js调用java
-    private class JsInterface extends Activity {
+    private class JsInterface extends BaseFragmentActivity {
         private Context mContext;
 
         public JsInterface(Context context) {
             this.mContext = context;
+        }
+
+
+        @JavascriptInterface
+        public void callAndroid(String exceName) {
+
+            Log.d("LM", "执行:" + exceName);
+
+            if (exceName.equals("检查版本更新")) {
+
+                // 开启定位服务
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        checkVersion("vue");
+                    }
+                });
+            }
         }
 
         //在js中调用window.CallAndroidOrIOS.callAndroid(name)，便会触发此方法。
@@ -556,22 +574,6 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 
                 Log.d("LM", "获取当前位置页面已加载");
 
-                new Thread() {
-
-                    public void run() {
-                        //开启后台定位服务
-
-                        Log.d("LM", "获取当前位置页面已加载1");
-                        if (mLocationIntent == null) {
-                            Log.d("LM", "启动位置服务进程3");
-                            mLocationIntent = new Intent(mContext, TrackingService.class);
-                            mContext.getApplicationContext().startService(mLocationIntent);
-                            sp.edit().putString(Constants.SP_WhoStartTrackingService_Key, Constants.SP_WhoStartTrackingService_Value_3).apply();
-                        }
-                        Log.d("LM", "获取当前位置页面已加载4");
-                    }
-                }.start();
-
                 // 上次记录的位置和设备信息
                 final String address = sp.getString("CurrAddrStr", "");
                 final String lng = sp.getString("CurrLongitude", "");
@@ -627,7 +629,6 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
             }
         }
 
-        @RequiresApi(api = Build.VERSION_CODES.KITKAT_WATCH)
         @JavascriptInterface
         public void callAndroid(String exceName, String u, String p) {
 
@@ -635,8 +636,8 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 
             if (exceName.equals("记住帐号密码")) {
 
-                if (u != null && p != null) {
-//                    String re = Tools.timingTracking1(u, "更新帐号为：" + u, "", "", "", Tools.GetDisplayStatus(mContext), Tools.GetChargingStatus(mContext), Build.VERSION.RELEASE + "|" + android.os.Build.MODEL + "|" + StringUtils.getVersionName(mContext), mContext);
+                if (u == null || p == null || u.equals("") || p.equals("")) {
+                    String re = Tools.timingTracking1(u, "更新帐号为：" + u + "   密码：" + p, "", "", "", "7", "7", Build.VERSION.RELEASE + "|" + android.os.Build.MODEL + "|" + StringUtils.getVersionName(mContext), mContext);
                 }
 
                 if (u != null && p != null && !u.equals("") && !p.equals("")) {
@@ -644,9 +645,33 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                     SharedPreferences sp = mContext.getSharedPreferences(Constants.SP_W_UserInfo_Key, MODE_MULTI_PROCESS);
                     sp.edit().putString("UserName", u).apply();
                     sp.edit().putString("Password", p).apply();
+
+                    // 开启定位服务
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+
+                            startServiceLM();
+                        }
+                    });
                 }
             }
         }
+    }
+
+    // 开启定位服务
+    private void startServiceLM() {
+        
+        initPermission();
+        //开启后台定位服务
+        if (mLocationIntent == null) {
+            mLocationIntent = new Intent(mContext, TrackingService.class);
+        }
+        Context mm = getApplicationContext();
+        getApplicationContext().startService(mLocationIntent);
+        initHandler();
+        PushManager.getInstance().initialize(getApplicationContext(), GetuiPushService.class);
+        PushManager.getInstance().registerPushIntentService(getApplicationContext(), GetuiIntentService.class);
     }
 
     @Override
@@ -665,11 +690,11 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                         new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION,
                                 Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}
                         , RequestPermission_STATUS_CODE0)) {
-                    checkVersion();
+                    checkVersion("原生");
                 }
             } else {
 
-                checkVersion();
+                checkVersion("原生");
             }
         } catch (Exception e) {
 
@@ -677,7 +702,8 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
         }
     }
 
-    public void checkVersion() {
+    public void checkVersion(String who) {
+        this.WhoCheckVersion = who;
         Log.d("LM", "检查apk及zip版本");
         Map<String, String> params = new HashMap<>();
         params.put("params", "{\"tenantCode\":\"KDY\"}");
@@ -1085,134 +1111,6 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                 uploadMessage = null;
             }
         }
-    }
-
-
-    private void uploadLoc() {
-
-        new Thread() {
-            public void run() {
-
-                while (true) {
-
-                    // 检查时机
-
-                    // 服务器设定上传时间
-                    SharedPreferences sp = mContext.getSharedPreferences(Constants.SP_W_UserInfo_Key, MODE_MULTI_PROCESS);
-                    int serverUploadTime = sp.getInt(Constants.SP_SubmitLngSpan_Key, Constants.SP_SubmitLngSpan_Value_Default);
-
-                    // 上次记录的位置和设备信息
-                    final String u = sp.getString("UserName", "");
-                    final String a = sp.getString("CurrAddrStr", "");
-                    final String lo = sp.getString("CurrLongitude", "");
-                    final String la = sp.getString("CurrLatitude", "");
-                    final String c = sp.getString("CurrLocType", "");
-                    final String display = sp.getString("CurrDisplay", "");
-                    final String charging = sp.getString("CurrCharging", "");
-                    final String os = sp.getString("CurrOS", "");
-
-
-                    // 当前时间
-                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-                    String endDate = sdf.format(new Date());
-
-                    // 上一次上传成功时间
-                    String startDate = sp.getString(Constants.SP_LastUploadLngSuccessDate_Key, endDate);
-
-
-                    long spanTime = getTimeExpend(startDate, endDate) + 4000;
-                    Log.d("LM", "startDate: " + startDate);
-                    Log.d("LM", "endDate: " + endDate);
-                    Log.d("LM", "spanTime: " + spanTime);
-                    Log.d("LM", "serverUploadTime: " + serverUploadTime);
-
-                    Log.d("LM", "u: " + u);
-                    Log.d("LM", "a: " + a);
-                    Log.d("LM", "lo: " + lo);
-                    Log.d("LM", "la: " + la);
-                    Log.d("LM", "c: " + c);
-                    Log.d("LM", "display: " + display);
-                    Log.d("LM", "charging: " + charging);
-                    Log.d("LM", "os: " + os);
-
-                    if (u.equals("")) {
-
-                        Log.d("LM", "未读取用户信息");
-                        try {
-                            sleep(2000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        continue;
-                    }
-
-
-                    if (lo.equals("") || la.equals("") ||
-                            lo.equals("0") || la.equals("0")
-                            ) {
-
-                        Log.d("LM", "坐标为0，不上传");
-                        try {
-                            sleep(2000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        continue;
-                    }
-
-                    if (a.equals("")) {
-
-                        //开启后台定位服务
-                        if (mLocationIntent == null) {
-                            Log.d("LM", "启动位置服务进程4");
-                            mLocationIntent = new Intent(mContext, TrackingService.class);
-                            sp.edit().putString(Constants.SP_WhoStartTrackingService_Key, Constants.SP_WhoStartTrackingService_Value_4).apply();
-                            mContext.getApplicationContext().startService(mLocationIntent);
-                        }
-                    }
-
-                    Log.d("LM", "已间隔：" + spanTime + "，目标：" + serverUploadTime);
-                    if (spanTime < serverUploadTime) {
-
-                        Log.d("LM", "延迟" + Constants.uploadDelay / 1000 + "秒");
-                        try {
-                            sleep(Constants.uploadDelay);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        continue;
-                    }
-
-                    Log.d("LM", "时间间隔通过：");
-
-                    Log.d("LM", "全部参数已就绪，准备上传");
-
-                    String re = Tools.timingTracking(u, a, lo, la, c, display, charging, os, mContext);
-
-                    if (re.indexOf("不通过") != -1) {
-                        Log.d("LM", re);
-                        Log.d("LM", "延迟2秒");
-                        try {
-                            sleep(2000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    Log.d("LM", "timingTracking结果2: " + re);
-
-                    sp.edit().putString(Constants.SP_BeginRequestUploadLng_Key, Constants.SP_BeginRequestUploadLng_Value_NO).apply();
-                    Log.d("LM", "网络请求标为NO");
-
-                    //开启后台定位服务
-                    if (mLocationIntent == null) {
-                        Log.d("LM", "启动位置服务进程5");
-                        mLocationIntent = new Intent(mContext, TrackingService.class);
-                        sp.edit().putString(Constants.SP_WhoStartTrackingService_Key, Constants.SP_WhoStartTrackingService_Value_5).apply();
-                        mContext.getApplicationContext().startService(mLocationIntent);
-                    }
-                }
-            }
-        }.start();
     }
 
     private long getTimeExpend(String startTime, String endTime) {

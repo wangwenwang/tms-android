@@ -10,14 +10,19 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.BatteryManager;
 import android.os.Build;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.Message;
+import android.os.SystemClock;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
+import android.view.Display;
 import android.view.WindowManager;
 import android.widget.Toast;
 
@@ -37,12 +42,14 @@ import com.baidu.location.LocationClientOption.LocationMode;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.utils.DistanceUtil;
 
+import com.kaidongyuan.app.basemodule.utils.nomalutils.DateUtil;
 import com.kaidongyuan.app.basemodule.utils.nomalutils.StringUtils;
 import com.kaidongyuan.app.basemodule.widget.MLog;
 import com.kaidongyuan.app.kdydriver.R;
 import com.kaidongyuan.app.kdydriver.app.AppContext;
 import com.kaidongyuan.app.kdydriver.bean.Tools;
 import com.kaidongyuan.app.kdydriver.bean.order.LocationContineTime;
+import com.kaidongyuan.app.kdydriver.bean.order.User;
 import com.kaidongyuan.app.kdydriver.constants.Constants;
 import com.kaidongyuan.app.kdydriver.ui.activity.LoginActivity;
 import com.kaidongyuan.app.kdydriver.utils.LocationFileHelper;
@@ -50,13 +57,21 @@ import com.kaidongyuan.app.kdydriver.utils.SharedPreferencesUtils;
 import com.kaidongyuan.app.kdydriver.utils.baidumapUtils.DataUtil;
 import com.kaidongyuan.app.kdydriver.utils.baidumapUtils.UploadCacheLocationUtil;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static java.lang.Thread.sleep;
+import static com.kaidongyuan.app.kdydriver.constants.Constants.SP_WhoStartTrackingService_Value_Default;
 
 /**
  * 后台定位服务
@@ -78,14 +93,14 @@ public class TrackingService extends Service {
     //仅GPS定位模式
 //    private LocationMode tempMode = LocationMode.Device_Sensors;
     boolean isLoop = true;
-    private static final double Min_Distance = 50;  // 上传时判断的最小距离
+    private static final double Min_Distance = 20;  // 上传时判断的最小距离
     //测试 2016.07.18
     //    private  static final double Min_Distance=-1;
     private RequestQueue mRequestQueue;
     private final static String Tag_Upload_Position = "Tag_Upload_Position";
     private boolean needClose = false;
     private String mUserId;
-    private StopReceiver mReceiver;
+    private static StopReceiver mReceiver;
     private String mFileName;
     //上传数据线程用到
     private long mNetNotConnetTime = 0;
@@ -96,10 +111,9 @@ public class TrackingService extends Service {
     //2016.3.25
     private String locationaddress;//被定义为百度定位返回code码字段
     private boolean againBoolean = true;
+    // 上传通道
+    private boolean uploadChannel = true;
     // private PowerManager.WakeLock wakeLock = null;
-
-    // 王文望
-    private boolean isUpload = true; // 是否上传，防止20秒内上传多个点
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -169,7 +183,7 @@ public class TrackingService extends Service {
             intent.putExtra("AM", "alarmManager");
             PendingIntent pendingIntent = PendingIntent.getService(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
             alarmManager.cancel(pendingIntent);
-            Long triggerAtime = System.currentTimeMillis() + 1000 * 60 * 1;
+            Long triggerAtime = System.currentTimeMillis() + 1000 * 60 * 2;
             //针对不同版本的AndroidSDK,采用不同方法的闹钟唤醒定位服务
             if (Build.VERSION.SDK_INT >= 23) {
                 alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtime, pendingIntent);
@@ -183,6 +197,7 @@ public class TrackingService extends Service {
     /**
      * 定时上传点位置信息的线程类
      */
+    int times = 0;
     private class LocationThread extends Thread {
         @Override
         public void run() {
@@ -192,8 +207,8 @@ public class TrackingService extends Service {
 //                    stopLocate();
                     if (!isNetworkAvailable()) {
                         mNetNotConnetTime += mScanSpanTime;
-                        //超过 28 分钟为联网就提示用户，弹出系统 Dialog
-                        if (mNetNotConnetTime >= 28 * 60 * 1000) {
+                        //超过 2 分钟为联网就提示用户，弹出系统 Dialog
+                        if (mNetNotConnetTime >= 2 * 60 * 1000) {
                             mHandler.sendEmptyMessage(1);
                             mNetNotConnetTime = 0;
                         }
@@ -204,13 +219,23 @@ public class TrackingService extends Service {
                         }
                     }
 
-                    Thread.currentThread().sleep(mScanSpanTime);
+                    times ++;
+                    Log.d("LM", "定时器执行次数：" + times);
+                    Thread.currentThread().sleep(1000 * 20);
+//                    Thread.currentThread().sleep(mScanSpanTime);
 
-                    // Thread.currentThread().wait(mScanSpanTime);
+                    if (mLocationClient != null && mLocationClient.isStarted()) {
+                        mLocationClient.requestLocation();
+                    }
 
-                    MLog.i("mLocationClient.isStarted():\t" + mLocationClient.isStarted());
-                    //   Thread.sleep(1*60*1000);
-                    // SharedPreferencesUtils.WriteSharedPreferences("TestDatabase",DataUtil.getStringTime(System.currentTimeMillis()),"定位线程启动时间");
+//                    stopLocate();
+//                    mLocationClient = null;
+//                    mLocationClient = new LocationClient(TrackingService.this);
+//                    myListener = new MyLocationListener();
+//                    mLocationClient.registerLocationListener(myListener);
+//                    initLocationClient();
+//                    mLocationClient.start();
+
                     againBoolean = true;
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -219,16 +244,16 @@ public class TrackingService extends Service {
         }
     }
 
+
     /*
      * 服务开始启动
      */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        final String display = Tools.GetDisplayStatus(mContext);
-        final String charging = Tools.GetChargingStatus(mContext);
-
-
+//        final String display = Tools.GetDisplayStatus(mContext);
+//        final String charging = Tools.GetChargingStatus(mContext);
+//
 //        new Thread() {
 //            public void run() {
 //
@@ -266,168 +291,157 @@ public class TrackingService extends Service {
     }
 
 
+    /*
+     * Function  :   封装请求体信息
+     * Param     :   params请求体内容，encode编码格式
+     */
+    public static StringBuffer getRequestData(Map<String, String> params, String encode) {
+        StringBuffer stringBuffer = new StringBuffer();        //存储封装好的请求体信息
+        try {
+            for (Map.Entry<String, String> entry : params.entrySet()) {
+                stringBuffer.append(entry.getKey())
+                        .append("=")
+                        .append(URLEncoder.encode(entry.getValue(), encode))
+                        .append("&");
+            }
+            stringBuffer.deleteCharAt(stringBuffer.length() - 1);    //删除最后的一个"&"
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return stringBuffer;
+    }
+
+
+    /*
+     * Function  :   处理服务器的响应结果（将输入流转化成字符串）
+     * Param     :   inputStream服务器的响应输入流
+     */
+    public static String dealResponseResult(InputStream inputStream) {
+        String resultData = null;      //存储处理结果
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        byte[] data = new byte[1024];
+        int len = 0;
+        try {
+            while ((len = inputStream.read(data)) != -1) {
+                byteArrayOutputStream.write(data, 0, len);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        resultData = new String(byteArrayOutputStream.toByteArray());
+        return resultData;
+    }
+
+
     /**
      * 定位SDK监听函数
      */
     private class MyLocationListener implements BDLocationListener {
 
         @Override
-        public void onReceiveLocation(BDLocation location) {
+        public void onReceiveLocation(final BDLocation location) {
 
-            Log.d("LM", "进入定位函数");
+            String addressACode = getlocationReturnCode(location.getLocType(), location.getAddrStr());
+            double distance = DistanceUtil.getDistance(new LatLng(mLat, mLng), new LatLng(location.getLatitude(), location.getLongitude()));
+            Log.d("LM", "进入定位函数: " + location.getLongitude() + "   " + location.getLatitude() + "   " +  addressACode + "距离：" + distance);
+            Toast.makeText(getApplicationContext(),"进入定位函数: " + location.getLongitude() + "   " + location.getLatitude() + "   " +  addressACode + "距离：" + distance, Toast.LENGTH_LONG).show();
 
             SharedPreferences sp = mContext.getSharedPreferences(Constants.SP_W_UserInfo_Key, MODE_MULTI_PROCESS);
             final String u = sp.getString("UserName", "");
+
             final String a = location.getAddrStr();
             final String lo = location.getLongitude() + "";
             final String la = location.getLatitude() + "";
-            final String c = location.getLocType() + "";
-            final String display = Tools.GetDisplayStatus(mContext);
-            final String charging = Tools.GetChargingStatus(mContext);
-            final String os = Build.VERSION.RELEASE + "|" + android.os.Build.MODEL + "|" + StringUtils.getVersionName(mContext);
-
-
             sp.edit().putString("CurrAddrStr", a).apply();
             sp.edit().putString("CurrLongitude", lo).apply();
             sp.edit().putString("CurrLatitude", la).apply();
-            sp.edit().putString("CurrLocType", c).apply();
-            sp.edit().putString("CurrDisplay", display).apply();
-            sp.edit().putString("CurrCharging", charging).apply();
-            sp.edit().putString("CurrOS", os).apply();
 
+            // Toast.makeText(getApplicationContext(),"\t"+location.getLocType(),Toast.LENGTH_LONG).show();
+            MLog.i("TrackingService MyLocationListener:\t" + location.getLocType());
+            if (location == null) {
 
-            // 上次记录的位置和设备信息
-            final String u2 = sp.getString("UserName", "");
-            final String a2 = sp.getString("CurrAddrStr", "");
-            final String lo2 = sp.getString("CurrLongitude", "");
-            final String la2 = sp.getString("CurrLatitude", "");
-            final String c2 = sp.getString("CurrLocType", "");
-            final String display2 = sp.getString("CurrDisplay", "");
-            final String charging2 = sp.getString("CurrCharging", "");
-            final String os2 = sp.getString("CurrOS", "");
-
-
-            Log.d("LM", "u: " + u2);
-            Log.d("LM", "a: " + a2);
-            Log.d("LM", "lo: " + lo2);
-            Log.d("LM", "la: " + la2);
-            Log.d("LM", "c: " + c2);
-            Log.d("LM", "display: " + display2);
-            Log.d("LM", "charging: " + charging2);
-            Log.d("LM", "os: " + os2);
-            Log.d("LM", "osttt: " + location.getAddrStr());
-            Log.d("LM", "osttt222: " + location.getLongitude());
-
-//            Toast.makeText(mContext, location.getLongitude() + "\n" + a2, Toast.LENGTH_LONG).show();
-
-
-            // 地址为null时不上传
-            if (a == null) {
-
-                Log.d("LM", "停止获取位置1");
-                stopLocate();
-                mLocationClient = null;
-                startLocate();
-
-                try {
-                    sleep(1000 * 3);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                if (needClose) {
+                    closeService();
+                }
+                //定位返回空值时，重新定位
+                if (againBoolean) {
+                    try {
+                        Thread.sleep(30 * 1000);
+                        againBoolean = false;
+                        int r = mLocationClient.requestLocation();
+                        Log.d("LM", "定位返回空值时，重新定位:" + r);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
                 return;
             }
-
-            if (u.equals("")) {
-
-                Log.d("LM", "未读取用户信息");
-                try {
-                    sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+            // 判断定位是否失败应该依据error code的值更加可靠, 上传坐标信息
+            if (!isLocateAvailable(location.getLocType())) {
+                if (needClose) {
+                    closeService();
                 }
+                // 20161103 陈翔 调试
+                if (againBoolean) {
+                    try {
+                        Thread.sleep(30 * 1000);
+                        againBoolean = false;
+                        int j = mLocationClient.requestLocation();
+                        Log.d("LM", "定位返回空值时，重新定位:" + j);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    return;
+                }
+                Log.d("LM", "定位返回错误码两次，放弃本次定位");
                 return;
             }
-
-//            Log.d("LM", "准备上传: " );
-//            // 上传标识为false时不上传
-//            if(isUpload == false) {
-//
-//                Log.d("LM", "通道被关闭，请等待");
-//                return;
-//            }
-            Log.d("LM", "允许上传: ");
-
-//            // 防止60秒内上传多个点
-//            new Thread() {
-//                public void run() {
-//                    try {
-//                        Log.d("LM", "睡眠20秒，防止重复上传");
-//                        sleep(60 * 1000);
-//                    } catch (InterruptedException e) {
-//                        e.printStackTrace();
-//                    }
-//                    Log.d("LM", "解除睡眠，允许上传");
-//                    isUpload = true;
-//                }
-//            }.start();
-//            Log.d("LM", "通过一个坐标，锁住通道");
-//            isUpload = false;
-
 
             if (mLat == 0 || mLng == 0) {
+
+                Log.d("LM", "首次定位");
+
                 mLat = location.getLatitude();
                 mLng = location.getLongitude();
-                MLog.w("首次定位" + "mLat:" + mLat + "\tmLng:" + mLng);
-                getlocationReturnCode(location.getLocType(), location.getAddrStr());
-                Log.d("LM", "地址: " + location.getAddrStr());
 
                 new Thread() {
-
                     public void run() {
 
-                        String re = Tools.timingTracking(u, a, lo, la, c, display, charging, os, mContext);
-                        Log.d("LM", "timingTracking结果3: " + re);
+                        if(uploadChannel == true) {
+
+                            // 关闭上传位置通道
+                            Log.d("LM", "关闭上传位置通道");
+                            uploadChannel = false;
+                            String result = uploadLocation(mLat, mLng, location.getTime(), location.getAddrStr(), u, location.getLocType() + "");
+                            Log.d("LM", result);
+
+                            try {  Thread.sleep(1000 * 10); } catch (InterruptedException e) { e.printStackTrace(); }
+                            Log.d("LM", "打开上传位置通道");
+                            uploadChannel = true;
+                        }else {
+
+                            Log.d("LM", "碰壁啦");
+                        }
+
                     }
                 }.start();
-
-                Log.d("LM", "cellphone: " + u);
-                Log.d("LM", "userName: " + "");
-                Log.d("LM", "vehicleLocation: " + location.getAddrStr());
-                Log.d("LM", "lon: " + location.getLongitude() + "");
-                Log.d("LM", "lat: " + location.getLatitude() + "");
-                Log.d("LM", "uuid: " + "android");
-                Log.d("LM", "code: " + location.getLocType() + "");
-                Log.d("LM", "brightscreen: " + display);
-                Log.d("LM", "charging: " + charging);
-                Log.d("LM", "os: " + os);
-
-                uploadLocation(mLat, mLng, location.getTime());
+                //   uploadLocation(mLat,mLng,DateUtil.formateWithTime(DateUtil.getDateTime(System.currentTimeMillis()-1000*60*60*24*100)));
+                //  Toast.makeText(mContext,"首次定位，mLat:"+mLat+"\tmLng;"+mLng+location.getTime(),Toast.LENGTH_LONG).show();
             } else {
 
+                Log.d("LM", "非首次定位");
+                final double lat = location.getLatitude();
+                final double lng = location.getLongitude();
                 new Thread() {
 
                     public void run() {
 
-                        String re = Tools.timingTracking(u, a, lo, la, c, display, charging, os, mContext);
-                        Log.d("LM", "timingTracking结果4: " + re);
+                        String result = uploadLocation(lat, lng, location.getTime(), location.getAddrStr(), u, location.getLocType() + "");
+                        Log.d("LM", result);
                     }
                 }.start();
-
-                double lat = location.getLatitude();
-                double lng = location.getLongitude();
-                MLog.w("百度返回码：" + location.getLocType() + "||location.lat:" + lat + "\t,lng:" + lng);
-                double distance = DistanceUtil.getDistance(new LatLng(mLat, mLng), new LatLng(lat, lng));
-                //2016.08.30 添加两定位点距离超过1000公里视为异常定位放弃distance<1000*300&&
-                if (distance >= Min_Distance && distance < 1000 * 500 && !needClose) {
-                    mLat = lat;
-                    mLng = lng;
-                    MLog.w(TAG + " :" + mUserId + "--" + lat + "--" + lng + "--" + mContext);
-                    getlocationReturnCode(location.getLocType(), location.getAddrStr());
-                    uploadLocation(mLat, mLng, location.getTime());
-                } else {
-
-                    MLog.w("移动距离小于最小上传距离，不上传数据");
-                }
+                //   uploadLocation(mLat,mLng,DateUtil.formateWithTime(DateUtil.getDateTime(System.currentTimeMillis()-1000*60*24*100)));
+                //Toast.makeText(mContext,"持续定位，mLat:"+mLat+"\tmLng;"+mLng+location.getTime(),Toast.LENGTH_LONG).show();
             }
         }
     }
@@ -474,7 +488,8 @@ public class TrackingService extends Service {
         }
     }
 
-    public void uploadLocation(final double lat, final double lng, final String locationtime) {
+    public String uploadLocation(final double lat, final double lng, final String locationtime,
+                                 final String vehicleLocation, final String cellphone, final String code) {
         stopLocate();
         /**
          * 在网络不可用时 缓存到本地文件中
@@ -482,103 +497,181 @@ public class TrackingService extends Service {
         if (!isNetworkAvailable()) {
             saveCacheLocation(lat, lng, locationtime);
             MLog.w("TrackingService.uploadLocation.无网络，lat:" + lat + "lng:" + lng + "缓存到本地");
-            return;
+            return "没有网络，打回";
         }
 
-        /**
-         * 上传缓存数据
-         */
-        List<LocationContineTime> locationList = LocationFileHelper.readFromFile2(mFileName);
-        if (locationList != null && locationList.size() > 0) {
-            //2016-03-15 修改，将缓存位置信息以一定数量上传
-            saveCacheLocation(lat, lng, locationtime);
-            locationList = LocationFileHelper.readFromFile2(mFileName);
-            MLog.w("有缓存数据，将点位置信息保存到缓存文件张再上传TrackingService.locationList.size():" + locationList.size());
-            UploadCacheLocationUtil.uploadCacheLocation(mContext, mRequestQueue, mFileName, mUserId, locationList);
-        } else {
-            if (mRequestQueue == null) {
-                mRequestQueue = Volley.newRequestQueue(mContext);
+//        /**
+//         * 上传缓存数据
+//         */
+//        List<LocationContineTime> locationList = LocationFileHelper.readFromFile2(mFileName);
+//        if (locationList != null && locationList.size() > 0) {
+//            //2016-03-15 修改，将缓存位置信息以一定数量上传
+//            saveCacheLocation(lat, lng, locationtime);
+//            locationList = LocationFileHelper.readFromFile2(mFileName);
+//            MLog.w("有缓存数据，将点位置信息保存到缓存文件张再上传TrackingService.locationList.size():" + locationList.size());
+//            // 王文望 后期 缓存
+////            UploadCacheLocationUtil.uploadCacheLocation(mContext, mRequestQueue, mFileName, mUserId, locationList);
+//            return "有缓存点，待上传";
+//        } else {
+        if (mRequestQueue == null) {
+            mRequestQueue = Volley.newRequestQueue(mContext);
 
+        }
+
+
+        Log.d("LM", "上传定位点，网络请求");
+        SharedPreferences sp = mContext.getSharedPreferences(Constants.SP_W_UserInfo_Key, MODE_MULTI_PROCESS);
+
+        // 当前时间
+        SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        String endDate2 = sdf2.format(new Date());
+
+        // 服务器设定上传时间
+        int serverUploadTime = sp.getInt(Constants.SP_SubmitLngSpan_Key, Constants.SP_SubmitLngSpan_Value_Default);
+
+        // 上一次成功上传坐标的时间
+        String startDate2 = sp.getString(Constants.SP_LastUploadLngSuccessDate_Key, endDate2);
+        long spanTime = Tools.getTimeExpend(startDate2, endDate2) + 4000;
+        Log.d("LM", "已间隔：" + spanTime + "，目标：" + serverUploadTime);
+
+        // 离上一次上传成功的坐标
+        Log.d("LM", "上次上传成功坐标：" + mLng + "，" + mLat);
+
+        double distance = DistanceUtil.getDistance(new LatLng(mLat, mLng), new LatLng(lat, lng));
+
+        final String LoginActiveFirstStart = sp.getString(Constants.SP_LoginActiveFirstStart_Key, "");
+
+        if (cellphone.equals("")) {
+
+            return "Tools检查不通过，未读取用户信息，打回";
+        }
+
+        if ((spanTime < serverUploadTime) && LoginActiveFirstStart.equals(Constants.SP_LoginActiveFirstStart_Value_NO)) {
+
+            return "Tools检查不通过，提交时间间隔不达标，打回";
+        }
+
+        if(LoginActiveFirstStart.equals(Constants.SP_LoginActiveFirstStart_Value_YES)) {
+
+            Log.d("LM", "Tools检查通过：第一次打开Activity拥有特权");
+        }
+
+        if (vehicleLocation == null) {
+
+            return "Tools检查不通过，地址不能为null，打回";
+        }
+
+        if (vehicleLocation.equals("")) {
+
+            return "Tools检查不通过，地址不能为空，打回";
+        }
+
+//        if ((lng + "").equals(lastLon) || (lat + "").equals(lastLat)) {
+//
+//            return "Tools检查不通过，坐标与上次成功上传相同，打回";
+//        }
+
+        // 两定位点距离超过1000公里视为异常定位放弃, distance<1000*50
+        if((distance < Min_Distance || distance > 1000*500) && !LoginActiveFirstStart.equals(Constants.SP_LoginActiveFirstStart_Value_YES)) {
+
+            return "Tools检查不通过，距离: " + distance + "，打回";
+        }
+
+        Log.d("LM", "Tools检查通过：");
+
+        String WhoStartTrackingService = sp.getString(Constants.SP_WhoStartTrackingService_Key, SP_WhoStartTrackingService_Value_Default);
+        Log.d("LM", "WhoStartTrackingService: " + WhoStartTrackingService);
+        if(!WhoStartTrackingService.equals("")) {
+            WhoStartTrackingService = "|" + WhoStartTrackingService;
+        }
+
+        String os =  Build.VERSION.RELEASE + "|" + android.os.Build.MODEL + "|" + StringUtils.getVersionName(mContext);
+
+        String display = Tools.GetDisplayStatus(mContext);
+        String charging = Tools.GetChargingStatus(mContext);
+
+        String params1 =
+                "{" +
+                        "\"cellphone\":\"" + cellphone + "\"," +
+                        "\"userName\":\"" + "" + "\"," +
+                        "\"vehicleLocation\":\"" + vehicleLocation + "\"," +
+                        "\"lon\":\"" + lng + "\"," +
+                        "\"lat\":\"" + lat + "\"," +
+                        "\"uuid\":\"" + "android" + "\"," +
+                        "\"code\":\"" + code + WhoStartTrackingService + "\"," +
+                        "\"brightscreen\":\"" + display + "\"," +
+                        "\"charging\":\"" + charging + "\"," +
+                        "\"os\":\"" + os + "\"" +
+                        "}";
+
+        Log.d("LM", "params1: " + params1);
+
+        Map<String, String> params = new HashMap<>();
+        params.put("params", params1);
+        byte[] data = getRequestData(params, "utf-8").toString().getBytes();//获得请求体
+
+        try {
+
+            URL url = new URL(Constants.URL.SAAS_API_BASE + "timingTracking.do");
+
+            HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
+            httpURLConnection.setConnectTimeout(5000);     //设置连接超时时间
+            httpURLConnection.setDoInput(true);                  //打开输入流，以便从服务器获取数据
+            httpURLConnection.setDoOutput(true);                 //打开输出流，以便向服务器提交数据
+            httpURLConnection.setRequestMethod("POST");     //设置以Post方式提交数据
+            httpURLConnection.setUseCaches(false);               //使用Post方式不能使用缓存
+            //设置请求体的类型是文本类型
+            httpURLConnection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+            //设置请求体的长度
+            httpURLConnection.setRequestProperty("Content-Length", String.valueOf(data.length));
+            //获得输出流，向服务器写入数据
+            OutputStream outputStream = httpURLConnection.getOutputStream();
+            outputStream.write(data);
+
+            int response = httpURLConnection.getResponseCode();            //获得服务器的响应码
+            if(response == HttpURLConnection.HTTP_OK) {
+                Log.d("LM", "上传位置成功");
+
+                InputStream inptStream = httpURLConnection.getInputStream();
+
+                // 记录最后一次成功上传位置时间
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+                String startDate = sdf.format(new Date());
+                sp.edit().putString(Constants.SP_LastUploadLngSuccessDate_Key, startDate).apply();
+                Log.d("LM", "记录最后一次成功上传位置时间");
+
+                // 记录距离最近的成功上传坐标，用于相同坐标不上传功能
+                mLat = lat;
+                mLng = lng;
+                Log.d("LM", "记录距离最近的成功上传坐标");
+
+                sp.edit().putString(Constants.SP_LoginActiveFirstStart_Key, Constants.SP_LoginActiveFirstStart_Value_NO).apply();
+                Log.d("LM", "标为不是第一次打开Activty");
+
+                if (needClose) {
+                    closeService();
+                }
+
+                return dealResponseResult(inptStream);                     //处理服务器的响应结果
             }
-            String url = Constants.URL.CurrentLocaltion;
-            MLog.w("上传位置信息URL：" + url + "?" + "strUserIdx=" + mUserId + "&cordinateX=" + lng + "&cordinateY=" + lat + "&strLicense=");
-            StringRequest mStringRequest = new StringRequest(Request.Method.POST,
-                    url, new com.android.volley.Response.Listener<String>() {
-                @Override
-                public void onResponse(String response) {
-                    com.alibaba.fastjson.JSONObject jo = JSON.parseObject(response);
-                    int type = Integer.parseInt(jo.getString("type"));
-                    if (type >= 1) {
-                        MLog.w("上传位置信息成功，response:" + response + "\t,locationtime:" + locationtime);
+        } catch (IOException e) {
 
-                        if (type > 1 && type != mScanSpanTime / 60000) {
-                            // 测试 2016.07.18
-//                            if (false){
-                            try {
+            //e.printStackTrace();
 
-                                Log.d(TAG, "上传位置信息成功，respo: " + mScanSpanTime);
-                                mScanSpanTime = type * 60 * 1000;
-                                mLocationThreadRunning = false;
-                                mThread.interrupt();
-                                sleep(15 * 1000);
-                                //设置间隔时间后，从新开启定位功能
-                                mLocationClient = new LocationClient(TrackingService.this);
-                                myListener = new MyLocationListener();
-                                mLocationClient.registerLocationListener(myListener);
-                                initLocationClient();
-                                mLocationThreadRunning = true;
-                                mThread = new LocationThread();
-                                mThread.setName("TrackingService.LocationThread,ScanSpanTime:" + type + "分钟");
-                                mThread.start();
-                                MLog.w("TrackingService.onResonse:Success" + "改变上传点位置信息时间，上传间隔时间分钟：" + mScanSpanTime / 60000);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    } else {
-                        MLog.w("上传位置信息失败，将点位置信息保存到缓存文件，response" + response + "\t,time" + DataUtil.getStringTime(System.currentTimeMillis()));
-                        saveCacheLocation(lat, lng, locationtime);
-                    }
-                    if (needClose) {
-                        closeService();
-                    }
-                }
-            }, new com.android.volley.Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                    MLog.w("上传位置信息失败，将点位置信息保存到缓存文件，error" + "\t,time" + DataUtil.getStringTime(System.currentTimeMillis()));
-                    saveCacheLocation(lat, lng, locationtime);
-                    /**
-                     * 之所以在error中postMsg 是为了在activity中取消listView的刷新状态
-                     */
-                    if (needClose) {
-                        closeService();
-                    }
-                    error.printStackTrace();
-                }
-            }) {
-                @Override
-                protected Map<String, String> getParams() throws AuthFailureError {
-                    Map<String, String> params = new HashMap<>();
-                    if (mUserId == null || mUserId.equals("")) {
-                        mUserId = SharedPreferencesUtils.getUserId();
-                    }
-                    params.put("strUserIdx", mUserId);
-                    params.put("cordinateX", lng + "");
-                    params.put("cordinateY", lat + "");
-                    params.put("address", locationaddress);
-                    params.put("strLicense", "");
-                    params.put("date", DataUtil.getStringTime(System.currentTimeMillis()) + "");
-                    //2016.3.25
-                    locationaddress = "BDCode";
-                    MLog.i("params:" + params.toString());
-                    return params;
-                }
-            };
-            mStringRequest.setRetryPolicy(new DefaultRetryPolicy(30 * 1000, 1, 1.0f));  // 设置超时
-            mStringRequest.setTag(Tag_Upload_Position);
-            mRequestQueue.add(mStringRequest);
+            MLog.w("上传位置信息失败，将点位置信息保存到缓存文件，error" + "\t,time" + DataUtil.getStringTime(System.currentTimeMillis()));
+            saveCacheLocation(lat, lng, locationtime);
+            /**
+             * 之所以在error中postMsg 是为了在activity中取消listView的刷新状态
+             */
+            if (needClose) {
+                closeService();
+            }
+            e.printStackTrace();
+
+            return "err: " + e.getMessage();
         }
+//        }
+        return "上传位置函数执行完毕（不能确定已经成功上传）";
     }
 
     /**
@@ -670,10 +763,8 @@ public class TrackingService extends Service {
         option.setScanSpan(mScanSpanTime);//设置上传位置时间间隔
         //  option.setScanSpan(1*60*1000);
         option.setIsNeedAddress(true);
-        option.setIsNeedLocationDescribe(true);
         option.setOpenGps(true);
         option.setTimeOut(10 * 1000); // 网络定位的超时时间
-        option.setAddrType("all");
         mLocationClient.setLocOption(option);
     }
 
@@ -717,7 +808,6 @@ public class TrackingService extends Service {
      */
     public void stopLocate() {
         if (mLocationClient != null && mLocationClient.isStarted()) {
-            Log.d("LM", "停止获取位置，执行完毕");
             mLocationClient.stop();
         }
     }

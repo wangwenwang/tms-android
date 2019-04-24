@@ -58,7 +58,7 @@ public class Constants {
     public static final String SP_BeginRequestUploadLng_Key = "SP_beginRequestUploadLng_Key";
     public static final String SP_BeginRequestUploadLng_Value_YES = "YES";
     public static final String SP_BeginRequestUploadLng_Value_NO = "NO";
-    // 提交坐标的时间间隔
+    // 提交坐标的时间间隔，单位/微秒
     public static final String SP_SubmitLngSpan_Key = "SP_SubmitLngSpan_Key";
     public final static int SP_SubmitLngSpan_Value_Default = 1000 * 60 * 5;
     // 上一次成功上传坐标的时间、坐标
