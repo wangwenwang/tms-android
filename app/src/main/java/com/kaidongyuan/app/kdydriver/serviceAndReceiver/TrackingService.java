@@ -344,7 +344,7 @@ public class TrackingService extends Service {
             String addressACode = getlocationReturnCode(location.getLocType(), location.getAddrStr());
             double distance = DistanceUtil.getDistance(new LatLng(mLat, mLng), new LatLng(location.getLatitude(), location.getLongitude()));
             Log.d("LM", "进入定位函数: " + location.getLongitude() + "   " + location.getLatitude() + "   " +  addressACode + "距离：" + distance);
-            Toast.makeText(getApplicationContext(),"进入定位函数: " + location.getLongitude() + "   " + location.getLatitude() + "   " +  addressACode + "距离：" + distance, Toast.LENGTH_LONG).show();
+//            Toast.makeText(getApplicationContext(),"进入定位函数: " + location.getLongitude() + "   " + location.getLatitude() + "   " +  addressACode + "距离：" + distance, Toast.LENGTH_LONG).show();
 
             SharedPreferences sp = mContext.getSharedPreferences(Constants.SP_W_UserInfo_Key, MODE_MULTI_PROCESS);
             final String u = sp.getString("UserName", "");
@@ -576,6 +576,7 @@ public class TrackingService extends Service {
 
             return "Tools检查不通过，距离: " + distance + "，打回";
         }
+        Log.d("LM", "距离: " + distance);
 
         Log.d("LM", "Tools检查通过：");
 

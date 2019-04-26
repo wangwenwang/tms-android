@@ -130,7 +130,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
     private static final String FILE_PROVIDER_AUTHORITY = "com.kaidongyuan.app.kdytms.fileprovider";
     // zip解压路径
     String unZipOutPath;
-    private String CURR_ZIP_VERSION = "0.3.2";
+    private String CURR_ZIP_VERSION = "0.3.3";
     private String WhoCheckVersion;
 
 
@@ -388,14 +388,6 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                     } else {
 
                         Log.d("LM", "apk为最新版本");
-                        if(WhoCheckVersion.equals("vue")) {
-                            AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
-                            builder.setTitle("");
-                            builder.setMessage("已经是最新版本！");
-                            builder.setPositiveButton("确定", null);
-                            builder.show();
-                        }
-                        checkGpsState();
 
                         String curr_zipVersion = Tools.getAppZipVersion(mContext);
                         compareVersion = Tools.compareVersion(server_zipVersion, curr_zipVersion);
@@ -408,7 +400,16 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                         } else {
 
                             Log.d("LM", "zip为最新版本");
+
+                            if(WhoCheckVersion.equals("vue")) {
+                                AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
+                                builder.setTitle("");
+                                builder.setMessage("已经是最新版本！");
+                                builder.setPositiveButton("确定", null);
+                                builder.show();
+                            }
                         }
+                        checkGpsState();
                     }
                 } catch (Exception e) {
                     Log.d("LM", "NameNotFoundException" + e.getMessage());
