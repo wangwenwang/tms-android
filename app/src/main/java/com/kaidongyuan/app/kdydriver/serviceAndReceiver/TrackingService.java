@@ -93,7 +93,7 @@ public class TrackingService extends Service {
     //仅GPS定位模式
 //    private LocationMode tempMode = LocationMode.Device_Sensors;
     boolean isLoop = true;
-    private static final double Min_Distance = 20;  // 上传时判断的最小距离
+    private static final double Min_Distance = 100;  // 上传时判断的最小距离
     //测试 2016.07.18
     //    private  static final double Min_Distance=-1;
     private RequestQueue mRequestQueue;
@@ -183,7 +183,7 @@ public class TrackingService extends Service {
             intent.putExtra("AM", "alarmManager");
             PendingIntent pendingIntent = PendingIntent.getService(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
             alarmManager.cancel(pendingIntent);
-            Long triggerAtime = System.currentTimeMillis() + 1000 * 60 * 2;
+            Long triggerAtime = System.currentTimeMillis() + 1000 * 60 * 3;
             //针对不同版本的AndroidSDK,采用不同方法的闹钟唤醒定位服务
             if (Build.VERSION.SDK_INT >= 23) {
                 alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtime, pendingIntent);
@@ -208,7 +208,7 @@ public class TrackingService extends Service {
                     if (!isNetworkAvailable()) {
                         mNetNotConnetTime += mScanSpanTime;
                         //超过 2 分钟为联网就提示用户，弹出系统 Dialog
-                        if (mNetNotConnetTime >= 2 * 60 * 1000) {
+                        if (mNetNotConnetTime >= 28 * 60 * 1000) {
                             mHandler.sendEmptyMessage(1);
                             mNetNotConnetTime = 0;
                         }
@@ -221,7 +221,7 @@ public class TrackingService extends Service {
 
                     times ++;
                     Log.d("LM", "定时器执行次数：" + times);
-                    Thread.currentThread().sleep(1000 * 60);
+                    Thread.currentThread().sleep(1000 * 60 * 6);
 //                    Thread.currentThread().sleep(mScanSpanTime);
 
                     if (mLocationClient != null && mLocationClient.isStarted()) {

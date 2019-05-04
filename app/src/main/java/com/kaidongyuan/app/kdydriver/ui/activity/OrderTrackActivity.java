@@ -14,6 +14,7 @@ import com.baidu.mapapi.map.MapStatus;
 import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.MarkerOptions;
+import com.baidu.mapapi.map.OverlayOptions;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.search.core.SearchResult;
 import com.baidu.mapapi.search.route.BikingRouteResult;
@@ -58,6 +59,7 @@ public class OrderTrackActivity extends BaseActivity implements AsyncHttpCallbac
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        //
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ordertrack);
         mMapView = (MapView) findViewById(R.id.mapView_orderTrack);
@@ -135,9 +137,6 @@ public class OrderTrackActivity extends BaseActivity implements AsyncHttpCallbac
             String msglm = jo.getString("Msg");
             Log.d("LM", "Msg: " + msglm);
             List<Location> locationlist = JSON.parseArray(jo.getString("pathData"), Location.class);
-            Log.d("LM", "位置点数量: 前");
-            Log.d("LM", "位置点数量: " + locationlist.size());
-            Log.d("LM", "位置点数量: " + locationlist);
 
             if(locationlist.size() < 4) {
 
@@ -151,13 +150,10 @@ public class OrderTrackActivity extends BaseActivity implements AsyncHttpCallbac
                 lo.CORDINATEX = lo.lon;
                 lo.CORDINATEY = lo.lat;
             }
-            Log.d("LM", "位置点数量: " + locationlist);
             if (locationlist == null || locationlist.size() < 0) {
                 mBaiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
-                Log.d("LM", "位置点数量: 前=====");
                 return;
             }
-            Log.d("LM", "位置点数量: 后");
             //绘制路线
             for (int i = 0; i < locationlist.size() / 100; i++) {
                 List<Location> locationListfd = locationlist.subList(i * 100, i * 100 + 101);
@@ -173,14 +169,31 @@ public class OrderTrackActivity extends BaseActivity implements AsyncHttpCallbac
             Location endLocation = locationlist.get(locationlist.size() - 1);
             LatLng stLatLng = new LatLng(startLocation.CORDINATEY, startLocation.CORDINATEX);
             LatLng enLatLng = new LatLng(endLocation.CORDINATEY, endLocation.CORDINATEX);
-            BitmapDescriptor stbitmap = BitmapDescriptorFactory.fromResource(R.drawable.icon_st);
-            BitmapDescriptor enbitmap = BitmapDescriptorFactory.fromResource(R.drawable.icon_car);
-            MarkerOptions stOption = new MarkerOptions().position(stLatLng).icon(stbitmap).zIndex(5);
-            MarkerOptions enOption = new MarkerOptions().position(enLatLng).icon(enbitmap).zIndex(5);
+            BitmapDescriptor stbitmap = BitmapDescriptorFactory.fromResource(R.drawable.lm_map_start);
+            BitmapDescriptor waybitmap = BitmapDescriptorFactory.fromResource(R.drawable.lm_map_way);
+            BitmapDescriptor enbitmap = BitmapDescriptorFactory.fromResource(R.drawable.lm_map_end);
+            MarkerOptions stOption = new MarkerOptions().position(stLatLng).icon(stbitmap).zIndex(12);
+            MarkerOptions enOption = new MarkerOptions().position(enLatLng).icon(enbitmap).zIndex(12);
             mBaiduMap.addOverlay(stOption);
             mBaiduMap.addOverlay(enOption);
-            mBaiduMap.setMapStatus(MapStatusUpdateFactory.newLatLng(stLatLng));
-            mBaiduMap.setMapStatus(MapStatusUpdateFactory.newMapStatus(new MapStatus.Builder().zoom(16).build()));
+            Log.d("LM", "起点、终点标注Ok");
+            //绘制司机上传位置的图标
+            List<OverlayOptions> wayOptions = new ArrayList<>();
+            for (int i = 0; i < locationlist.size(); i++) {
+
+                if(i != 0 && i!= locationlist.size() - 1) {
+
+                    Location wayLocation = locationlist.get(i);
+                    LatLng wayLatLng = new LatLng(wayLocation.CORDINATEY, wayLocation.CORDINATEX);
+                    MarkerOptions wayOption = new MarkerOptions().position(wayLatLng).icon(waybitmap).zIndex(11);
+                    wayOptions.add(wayOption);
+                }
+            }
+            mBaiduMap.addOverlays(wayOptions);
+            Log.d("LM", "途经点标注Ok");
+
+//            mBaiduMap.setMapStatus(MapStatusUpdateFactory.newLatLng(stLatLng));
+//            mBaiduMap.setMapStatus(MapStatusUpdateFactory.newMapStatus(new MapStatus.Builder().zoom(16).build()));
         }
     }
 
