@@ -192,6 +192,14 @@ public class OrderTrackActivity extends BaseActivity implements AsyncHttpCallbac
             mBaiduMap.addOverlays(wayOptions);
             Log.d("LM", "途经点标注Ok");
 
+            if(locationlist.size() > 50) {
+
+                showToastMsg("正在规划路线...", Toast.LENGTH_LONG);
+            }else if(locationlist.size() > 20) {
+
+                showToastMsg("正在规划路线...", Toast.LENGTH_SHORT);
+            }
+
 //            mBaiduMap.setMapStatus(MapStatusUpdateFactory.newLatLng(stLatLng));
 //            mBaiduMap.setMapStatus(MapStatusUpdateFactory.newMapStatus(new MapStatus.Builder().zoom(16).build()));
         }
