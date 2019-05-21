@@ -3,6 +3,9 @@ package com.kaidongyuan.app.kdydriver.ui.activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.alibaba.fastjson.JSON;
@@ -10,8 +13,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.BitmapDescriptor;
 import com.baidu.mapapi.map.BitmapDescriptorFactory;
-import com.baidu.mapapi.map.MapStatus;
-import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.MarkerOptions;
 import com.baidu.mapapi.map.OverlayOptions;
@@ -27,9 +28,7 @@ import com.baidu.mapapi.search.route.TransitRouteResult;
 import com.baidu.mapapi.search.route.WalkingRouteResult;
 import com.baidu.mapapi.utils.DistanceUtil;
 import com.kaidongyuan.app.basemodule.interfaces.AsyncHttpCallback;
-import com.kaidongyuan.app.basemodule.utils.nomalutils.StringUtils;
 import com.kaidongyuan.app.basemodule.widget.MLog;
-import com.kaidongyuan.app.basemodule.widget.SlidingTitleView;
 import com.kaidongyuan.app.kdydriver.R;
 import com.kaidongyuan.app.kdydriver.bean.order.Location;
 import com.kaidongyuan.app.kdydriver.constants.Constants;
@@ -46,8 +45,8 @@ import java.util.Map;
  * ${PEOJECT_NAME}
  * Created by Administrator on 2016/10/19.
  */
-public class OrderTrackActivity extends BaseActivity implements AsyncHttpCallback {
-    private SlidingTitleView titleView;
+public class OrderTrackActivity extends BaseActivity implements AsyncHttpCallback, View.OnClickListener {
+    private TextView tvDistance, tvShipmentCode;
     private MapView mMapView;
     private final String Tag_Get_Locations = "Tag_Get_Locations";
     private OrderAsyncHttpClient mClient;
@@ -56,6 +55,12 @@ public class OrderTrackActivity extends BaseActivity implements AsyncHttpCallbac
     public double distance0 = 0;
     private int agains = 10;//可以重新请求规划路段的次数
     private RoutePlanSearch mSearch;
+    private TextView tv_prompt;
+
+    /**
+     * 返回上一界面按钮
+     */
+    private ImageView mImageViewGoBack;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,15 +71,17 @@ public class OrderTrackActivity extends BaseActivity implements AsyncHttpCallbac
         mBaiduMap = mMapView.getMap();
         mClient = new OrderAsyncHttpClient(this, this);
         mBaiduMap.setMapType(BaiduMap.MAP_TYPE_NONE);
+        tv_prompt = (TextView) findViewById(R.id.tv_prompt);
         initview();
         getPath();
+        setListener();
     }
 
     private void getPath() {
         Intent intent = getIntent();
         String orderId = intent.getStringExtra("order_IDX");
         if (orderId == null || orderId.equals("")) {
-            showToastMsg("发货单号有误，请返回重新加载");
+            showToastMsg("装运编号号有误，请返回重新加载");
             finish();
             return;
         }
@@ -86,9 +93,36 @@ public class OrderTrackActivity extends BaseActivity implements AsyncHttpCallbac
     }
 
     private void initview() {
-        titleView = (SlidingTitleView) findViewById(R.id.slidingtitelView_OrderTrackActivity);
-        titleView.setMode(SlidingTitleView.MODE_BACK);
-        titleView.setText("正规划路线");
+        tvShipmentCode = (TextView) findViewById(R.id.tv_shipment_code);
+        Intent intent = getIntent();
+        String shipment_Code = intent.getStringExtra("shipment_Code");
+        if (shipment_Code != null && !shipment_Code.equals("")) {
+            tvShipmentCode.setText("配载单号：" + shipment_Code);
+        }
+        tvDistance = (TextView) findViewById(R.id.tv_distance);
+        tvDistance.setText("正规划路线");
+        mImageViewGoBack = (ImageView) this.findViewById(R.id.button_goback);
+    }
+
+    private void setListener() {
+        try {
+            mImageViewGoBack.setOnClickListener((View.OnClickListener) this);
+        } catch (Exception e) {
+
+        }
+    }
+
+    @Override
+    public void onClick(View v) {
+        try {
+            switch (v.getId()) {
+                case R.id.button_goback: //返回上一界面
+                    this.finish();
+                    break;
+            }
+        } catch (Exception e) {
+
+        }
     }
 
 
@@ -123,6 +157,7 @@ public class OrderTrackActivity extends BaseActivity implements AsyncHttpCallbac
         if (mMapView != null) {
             mMapView.onDestroy();
         }
+        mImageViewGoBack = null;
 
     }
 
@@ -140,7 +175,7 @@ public class OrderTrackActivity extends BaseActivity implements AsyncHttpCallbac
 
             if(locationlist.size() < 4) {
 
-                showToastMsg("位置点个数为: " + locationlist.size() + "，小于4个点不能规划路线", Toast.LENGTH_LONG);
+                tv_prompt.setText("位置点个数为: " + locationlist.size() + "，小于4个点不能规划路线");
                 return;
             }
 
@@ -171,7 +206,16 @@ public class OrderTrackActivity extends BaseActivity implements AsyncHttpCallbac
             LatLng enLatLng = new LatLng(endLocation.CORDINATEY, endLocation.CORDINATEX);
             BitmapDescriptor stbitmap = BitmapDescriptorFactory.fromResource(R.drawable.lm_map_start);
             BitmapDescriptor waybitmap = BitmapDescriptorFactory.fromResource(R.drawable.lm_map_way);
-            BitmapDescriptor enbitmap = BitmapDescriptorFactory.fromResource(R.drawable.lm_map_end);
+
+            BitmapDescriptor enbitmap = null;
+            Intent intent = getIntent();
+            String shipment_Status = intent.getStringExtra("shipment_Status");
+            if(shipment_Status != null && shipment_Status.equals("在途")) {
+                enbitmap = BitmapDescriptorFactory.fromResource(R.drawable.lm_map_curr);
+            }else{
+                enbitmap = BitmapDescriptorFactory.fromResource(R.drawable.lm_map_end);
+            }
+
             MarkerOptions stOption = new MarkerOptions().position(stLatLng).icon(stbitmap).zIndex(12);
             MarkerOptions enOption = new MarkerOptions().position(enLatLng).icon(enbitmap).zIndex(12);
             mBaiduMap.addOverlay(stOption);
@@ -255,7 +299,7 @@ public class OrderTrackActivity extends BaseActivity implements AsyncHttpCallbac
                     MLog.e("error:" + "抱歉，未找到结果");
                     if (!OrderTrackActivity.this.isFinishing() && agains > 0) {
                         searchInMap(locationListfd, again);
-                        titleView.setText("查询路线中");
+                        tvDistance.setText("查询路线中");
                     }
                     if (again == 1) {
                         mBaiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
@@ -272,7 +316,7 @@ public class OrderTrackActivity extends BaseActivity implements AsyncHttpCallbac
                     MLog.d("onGetDrivingRouteResult no error");
                     DrivingRouteOverlay overlay = new MyDrivingRouteOverlay(mBaiduMap);
                     distance += drivingRouteResult.getRouteLines().get(0).getDistance();
-                    titleView.setText(distance0 > distance ? titleView.getText() : ("公里数：" + distance / 1000 + "公里"));
+                    tvDistance.setText(distance0 > distance ? tvDistance.getText() : ("公里数：" + distance / 1000 + "公里"));
                     MLog.e("驾车规划出来的数据：" + distance / 1000 + "公里");
                     overlay.setData(drivingRouteResult.getRouteLines().get(0));
                     overlay.addToMap();
@@ -296,7 +340,7 @@ public class OrderTrackActivity extends BaseActivity implements AsyncHttpCallbac
         mSearch.setOnGetRoutePlanResultListener(listener);
         //移动节点至起点
         MLog.e(" 移动节点至起点" + "总计点数" + locationListfd.size());
-        titleView.setText(mSearch.drivingSearch(drivingRoutePlanOption) ? "正绘制路线" : "路线有误，请重新查看");
+        tvDistance.setText(mSearch.drivingSearch(drivingRoutePlanOption) ? "正绘制路线" : "路线有误，请重新查看");
     }
 
     //定制RouteOverly

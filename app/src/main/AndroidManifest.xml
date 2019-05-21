@@ -118,7 +118,6 @@
             android:launchMode="singleTop"
             android:configChanges="orientation|screenSize"
             android:screenOrientation="portrait"
-            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
             />
         <activity android:name=".ui.activity.OrderListChoiceActivity"
             android:launchMode="standard"

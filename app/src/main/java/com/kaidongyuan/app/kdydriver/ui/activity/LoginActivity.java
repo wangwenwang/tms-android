@@ -130,7 +130,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
     private static final String FILE_PROVIDER_AUTHORITY = "com.kaidongyuan.app.kdytms.fileprovider";
     // zip解压路径
     String unZipOutPath;
-    private String CURR_ZIP_VERSION = "0.3.6";
+    private String CURR_ZIP_VERSION = "0.3.8";
     private String WhoCheckVersion;
 
 
@@ -611,22 +611,22 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 
                 Log.d("LM", "查看路线");
 
-                new Thread() {
-
-                    public void run() {
-
-
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-
-                                Intent intent2 = new Intent(LoginActivity.mContext, OrderTrackActivity.class);
-                                intent2.putExtra("order_IDX", inputName);
-                                mContext.startActivity(intent2);
-                            }
-                        });
-                    }
-                }.start();
+//                new Thread() {
+//
+//                    public void run() {
+//
+//
+//                        runOnUiThread(new Runnable() {
+//                            @Override
+//                            public void run() {
+//
+//                                Intent intent2 = new Intent(LoginActivity.mContext, OrderTrackActivity.class);
+//                                intent2.putExtra("order_IDX", inputName);
+//                                mContext.startActivity(intent2);
+//                            }
+//                        });
+//                    }
+//                }.start();
             }
         }
 
@@ -656,6 +656,35 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                         }
                     });
                 }
+            }
+        }
+
+        @JavascriptInterface
+        public void callAndroid(String exceName, final String shipmentID, final String shipmentCode, final String shipmentStatus) {
+
+            Log.d("LM", "执行:" + exceName + "    " + "装运ID:" + shipmentID + "    "
+                    + "装运编号:" + shipmentCode + "    " + "装运状态:" + shipmentStatus);
+
+            if (exceName.equals("查看路线")) {
+
+                new Thread() {
+
+                    public void run() {
+
+
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+
+                                Intent intent2 = new Intent(LoginActivity.mContext, OrderTrackActivity.class);
+                                intent2.putExtra("order_IDX", shipmentID);
+                                intent2.putExtra("shipment_Code", shipmentCode);
+                                intent2.putExtra("shipment_Status", shipmentStatus);
+                                mContext.startActivity(intent2);
+                            }
+                        });
+                    }
+                }.start();
             }
         }
     }
