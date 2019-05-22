@@ -550,6 +550,7 @@ public class TrackingService extends Service {
         double distance = DistanceUtil.getDistance(new LatLng(mLat, mLng), new LatLng(lat, lng));
 
         final String LoginActiveFirstStart = sp.getString(Constants.SP_LoginActiveFirstStart_Key, "");
+        final String FirstUploadLoc = sp.getString(Constants.SP_FirstUploadLoc_Key, "");
 
         if (cellphone.equals("")) {
 
@@ -600,6 +601,10 @@ public class TrackingService extends Service {
 
         String display = Tools.GetDisplayStatus(mContext);
         String charging = Tools.GetChargingStatus(mContext);
+
+        if(FirstUploadLoc.equals("")) {
+            display = "9";
+        }
 
         String params1 =
                 "{" +
@@ -658,6 +663,9 @@ public class TrackingService extends Service {
 
                 sp.edit().putString(Constants.SP_LoginActiveFirstStart_Key, Constants.SP_LoginActiveFirstStart_Value_NO).apply();
                 Log.d("LM", "标为不是第一次打开Activty");
+
+                sp.edit().putString(Constants.SP_FirstUploadLoc_Key, Constants.SP_FirstUploadLoc_Key_Value_NO).apply();
+                Log.d("LM", "标为不是第一次上传位置点");
 
                 if (needClose) {
                     closeService();

@@ -65,6 +65,9 @@ public class Constants {
     public static final String SP_LastUploadLngSuccessDate_Key = "SP_LastUploadLngSuccessDate_Key";
     public static final String SP_LastUploadLonSuccess_Key = "SP_LastUploadLonSuccess_Key";
     public static final String SP_LastUploadLatSuccess_Key = "SP_LastUploadLatSuccess_Key";
+    // 是否第一次成功上传APP位置点（用来判断用户什么时候安装的APP，分析数据用）
+    public static final String SP_FirstUploadLoc_Key = "SP_FirstUploadLoc_Key";
+    public static final String SP_FirstUploadLoc_Key_Value_NO = "NO";
     // 是否第一次加载 LoginActive
     public static final String SP_LoginActiveFirstStart_Key = "SP_LoginActiveFirstStart_Key";
     public static final String SP_LoginActiveFirstStart_Value_YES = "YES";
