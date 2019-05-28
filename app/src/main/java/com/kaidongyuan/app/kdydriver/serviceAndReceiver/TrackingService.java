@@ -361,9 +361,13 @@ public class TrackingService extends Service {
                 final String a = location.getAddrStr();
                 final String lo = location.getLongitude() + "";
                 final String la = location.getLatitude() + "";
-                sp.edit().putString("CurrAddrStr", a).apply();
-                sp.edit().putString("CurrLongitude", lo).apply();
-                sp.edit().putString("CurrLatitude", la).apply();
+
+                if (isLocateAvailable(location.getLocType())) {
+
+                    sp.edit().putString("CurrLongitude", lo).apply();
+                    sp.edit().putString("CurrLatitude", la).apply();
+                    sp.edit().putString("CurrAddrStr", a).apply();
+                }
 
                 // Toast.makeText(getApplicationContext(),"\t"+location.getLocType(),Toast.LENGTH_LONG).show();
                 MLog.i("TrackingService MyLocationListener:\t" + location.getLocType());

@@ -51,6 +51,13 @@ import android.widget.Toast;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.baidu.location.LocationClient;
+import com.baidu.mapapi.model.LatLng;
+import com.baidu.mapapi.search.core.SearchResult;
+import com.baidu.mapapi.search.geocode.GeoCodeResult;
+import com.baidu.mapapi.search.geocode.GeoCoder;
+import com.baidu.mapapi.search.geocode.OnGetGeoCoderResultListener;
+import com.baidu.mapapi.search.geocode.ReverseGeoCodeOption;
+import com.baidu.mapapi.search.geocode.ReverseGeoCodeResult;
 import com.igexin.sdk.PushManager;
 import com.kaidongyuan.app.basemodule.interfaces.AsyncHttpCallback;
 import com.kaidongyuan.app.basemodule.utils.nomalutils.MPermissionsUtil;
@@ -499,6 +506,14 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
             this.mContext = context;
         }
 
+        // 经纬坐标转地址，抽象函数
+        OnGetGeoCoderResultListener listener = new OnGetGeoCoderResultListener() {
+            public void onGetGeoCodeResult(GeoCodeResult result) {
+            }
+            @Override
+            public void onGetReverseGeoCodeResult(ReverseGeoCodeResult result) {
+            }
+        };
 
         @JavascriptInterface
         public void callAndroid(String exceName) {
@@ -580,15 +595,63 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                 final String lng = sp.getString("CurrLongitude", "");
                 final String lat = sp.getString("CurrLatitude", "");
 
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
+                // 如果有经纬坐标，没有地址。进行坐标转地址
+                if(!lat.equals("") && !lng.equals("") && address.equals("")) {
 
-                        String url = "javascript:SetCurrAddress('" + address + "','" + lng + "','" + lat + "')";
-                        LoginActivity.mWebView.loadUrl(url);
-                        Log.d("LM", url);
-                    }
-                });
+                    GeoCoder geoCoder = GeoCoder.newInstance();
+                    LatLng latlng = new LatLng(Tools.convertToDouble(lat, 0) ,Tools.convertToDouble(lng, 0));
+                    geoCoder.reverseGeoCode(new ReverseGeoCodeOption().location(latlng));
+                    geoCoder.setOnGetGeoCodeResultListener(new OnGetGeoCoderResultListener() {
+
+                        // 经纬度转换成地址
+                        @Override
+                        public void onGetReverseGeoCodeResult(ReverseGeoCodeResult result) {
+                            if (result == null ||  result.error != SearchResult.ERRORNO.NO_ERROR) {
+
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+
+                                        String url = "javascript:SetCurrAddress('" + address + "','" + lng + "','" + lat + "')";
+                                        LoginActivity.mWebView.loadUrl(url);
+                                        Log.d("LM", url);
+                                    }
+                                });
+                            }else {
+
+                                final String addressGeo = "中国|" + result.getAddress();
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+
+                                        String url = "javascript:SetCurrAddress('" + addressGeo + "','" + lng + "','" + lat + "')";
+                                        LoginActivity.mWebView.loadUrl(url);
+                                        Log.d("LM", url);
+                                    }
+                                });
+                            }
+                        }
+
+                        // 把地址转换成经纬度
+                        @Override
+                        public void onGetGeoCodeResult(GeoCodeResult result) {
+                        }
+                    });
+                }
+                // 有经纬坐标，有地址
+                else {
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+
+                            String url = "javascript:SetCurrAddress('" + address + "','" + lng + "','" + lat + "')";
+                            LoginActivity.mWebView.loadUrl(url);
+                            Log.d("LM", url);
+                        }
+                    });
+                }
+
             } else if (exceName.equals("导航")) {
 
                 Log.d("LM", "导航");
