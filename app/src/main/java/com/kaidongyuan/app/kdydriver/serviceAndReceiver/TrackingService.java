@@ -341,6 +341,8 @@ public class TrackingService extends Service {
         @Override
         public void onReceiveLocation(final BDLocation location) {
 
+            final int locCode = location.getLocType();
+
             SharedPreferences sp = mContext.getSharedPreferences(Constants.SP_W_UserInfo_Key, MODE_MULTI_PROCESS);
             final String u = sp.getString("UserName", "");
 
@@ -353,7 +355,7 @@ public class TrackingService extends Service {
                         "22.626777", "161", display, charging, "ANDROID", mContext);
             }else {
 
-                String addressACode = getlocationReturnCode(location.getLocType(), location.getAddrStr());
+                String addressACode = getlocationReturnCode(locCode, location.getAddrStr());
                 double distance = DistanceUtil.getDistance(new LatLng(mLat, mLng), new LatLng(location.getLatitude(), location.getLongitude()));
                 Log.d("LM", "进入定位函数: " + location.getLongitude() + "   " + location.getLatitude() + "   " +  addressACode + "距离：" + distance);
 //            Toast.makeText(getApplicationContext(),"进入定位函数: " + location.getLongitude() + "   " + location.getLatitude() + "   " +  addressACode + "距离：" + distance, Toast.LENGTH_LONG).show();
@@ -362,15 +364,14 @@ public class TrackingService extends Service {
                 final String lo = location.getLongitude() + "";
                 final String la = location.getLatitude() + "";
 
-                if (isLocateAvailable(location.getLocType())) {
+                Log.d("LM", "定位码: " + locCode);
+                sp.edit().putInt("CurrLocCode", locCode).apply();
+                sp.edit().putString("CurrLongitude", lo).apply();
+                sp.edit().putString("CurrLatitude", la).apply();
+                sp.edit().putString("CurrAddrStr", a).apply();
 
-                    sp.edit().putString("CurrLongitude", lo).apply();
-                    sp.edit().putString("CurrLatitude", la).apply();
-                    sp.edit().putString("CurrAddrStr", a).apply();
-                }
-
-                // Toast.makeText(getApplicationContext(),"\t"+location.getLocType(),Toast.LENGTH_LONG).show();
-                MLog.i("TrackingService MyLocationListener:\t" + location.getLocType());
+                // Toast.makeText(getApplicationContext(),"\t"+locCode,Toast.LENGTH_LONG).show();
+                MLog.i("TrackingService MyLocationListener:\t" + locCode);
                 if (location == null) {
 
                     if (needClose) {
@@ -390,7 +391,7 @@ public class TrackingService extends Service {
                     return;
                 }
                 // 判断定位是否失败应该依据error code的值更加可靠, 上传坐标信息
-                if (!isLocateAvailable(location.getLocType())) {
+                if (!isLocateAvailable(locCode)) {
                     if (needClose) {
                         closeService();
                     }
@@ -425,7 +426,7 @@ public class TrackingService extends Service {
                                 // 关闭上传位置通道
                                 Log.d("LM", "关闭上传位置通道");
                                 uploadChannel = false;
-                                String result = uploadLocation(mLat, mLng, location.getTime(), location.getAddrStr(), u, location.getLocType() + "");
+                                String result = uploadLocation(mLat, mLng, location.getTime(), location.getAddrStr(), u, locCode + "");
                                 Log.d("LM", result);
 
                                 try {  Thread.sleep(1000 * 10); } catch (InterruptedException e) { e.printStackTrace(); }
@@ -449,7 +450,7 @@ public class TrackingService extends Service {
 
                         public void run() {
 
-                            String result = uploadLocation(lat, lng, location.getTime(), location.getAddrStr(), u, location.getLocType() + "");
+                            String result = uploadLocation(lat, lng, location.getTime(), location.getAddrStr(), u, locCode + "");
                             Log.d("LM", result);
                         }
                     }.start();

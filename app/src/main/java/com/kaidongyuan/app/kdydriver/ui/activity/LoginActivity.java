@@ -137,7 +137,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
     private static final String FILE_PROVIDER_AUTHORITY = "com.kaidongyuan.app.kdytms.fileprovider";
     // zip解压路径
     String unZipOutPath;
-    private String CURR_ZIP_VERSION = "0.4.0";
+    private String CURR_ZIP_VERSION = "0.4.3";
     private String WhoCheckVersion;
 
 
@@ -594,6 +594,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                 final String address = sp.getString("CurrAddrStr", "");
                 final String lng = sp.getString("CurrLongitude", "");
                 final String lat = sp.getString("CurrLatitude", "");
+                final int locCode = sp.getInt("CurrLocCode", 0);
 
                 // 如果有经纬坐标，没有地址。进行坐标转地址
                 if(!lat.equals("") && !lng.equals("") && address.equals("")) {
@@ -612,7 +613,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                                     @Override
                                     public void run() {
 
-                                        String url = "javascript:SetCurrAddress('" + address + "','" + lng + "','" + lat + "')";
+                                        String url = "javascript:SetCurrAddress('" + address + "','" + lng + "','" + lat + "','" + locCode + "')";
                                         LoginActivity.mWebView.loadUrl(url);
                                         Log.d("LM", url);
                                     }
@@ -624,7 +625,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                                     @Override
                                     public void run() {
 
-                                        String url = "javascript:SetCurrAddress('" + addressGeo + "','" + lng + "','" + lat + "')";
+                                        String url = "javascript:SetCurrAddress('" + addressGeo + "','" + lng + "','" + lat + "','" + locCode + "')";
                                         LoginActivity.mWebView.loadUrl(url);
                                         Log.d("LM", url);
                                     }
@@ -645,7 +646,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                         @Override
                         public void run() {
 
-                            String url = "javascript:SetCurrAddress('" + address + "','" + lng + "','" + lat + "')";
+                            String url = "javascript:SetCurrAddress('" + address + "','" + lng + "','" + lat + "','" + locCode + "')";
                             LoginActivity.mWebView.loadUrl(url);
                             Log.d("LM", url);
                         }
