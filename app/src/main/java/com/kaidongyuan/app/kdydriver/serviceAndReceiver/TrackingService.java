@@ -341,122 +341,138 @@ public class TrackingService extends Service {
         @Override
         public void onReceiveLocation(final BDLocation location) {
 
-            final int locCode = location.getLocType();
-
             SharedPreferences sp = mContext.getSharedPreferences(Constants.SP_W_UserInfo_Key, MODE_MULTI_PROCESS);
             final String u = sp.getString("UserName", "");
 
             if (location == null) {
 
-                String display = Tools.GetDisplayStatus(mContext);
-                String charging = Tools.GetChargingStatus(mContext);
+                final String display = Tools.GetDisplayStatus(mContext);
+                final String charging = Tools.GetChargingStatus(mContext);
 
-                String re = Tools.timingTracking1("13726027405", u, "114.045777",
-                        "22.626777", "161", display, charging, "ANDROID", mContext);
-            }else {
+                new Thread() {
+                    public void run() {
 
-                String addressACode = getlocationReturnCode(locCode, location.getAddrStr());
-                double distance = DistanceUtil.getDistance(new LatLng(mLat, mLng), new LatLng(location.getLatitude(), location.getLongitude()));
-                Log.d("LM", "进入定位函数: " + location.getLongitude() + "   " + location.getLatitude() + "   " +  addressACode + "距离：" + distance);
+                        String re = Tools.timingTracking1("13726027405", u, "114.045777",
+                                "22.626777", "-1", display, charging, "ANDROID", mContext);
+                    }
+                }.start();
+
+                if (needClose) {
+                    closeService();
+                }
+                // 定位返回空值时，重新定位
+                if (againBoolean) {
+                    try {
+                        Thread.sleep(5 * 1000);
+                        againBoolean = false;
+                        int r = mLocationClient.requestLocation();
+                        Log.d("LM", "定位返回空值时，重新定位:" + r);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                return;
+            }
+
+            final int locCode = location.getLocType();
+
+            String addressACode = getlocationReturnCode(locCode, location.getAddrStr());
+            double distance = DistanceUtil.getDistance(new LatLng(mLat, mLng), new LatLng(location.getLatitude(), location.getLongitude()));
+            Log.d("LM", "进入定位函数: " + location.getLongitude() + "   " + location.getLatitude() + "   " + addressACode + "距离：" + distance);
 //            Toast.makeText(getApplicationContext(),"进入定位函数: " + location.getLongitude() + "   " + location.getLatitude() + "   " +  addressACode + "距离：" + distance, Toast.LENGTH_LONG).show();
 
-                final String a = location.getAddrStr();
-                final String lo = location.getLongitude() + "";
-                final String la = location.getLatitude() + "";
+            final String a = location.getAddrStr();
+            final String lo = location.getLongitude() + "";
+            final String la = location.getLatitude() + "";
 
-                Log.d("LM", "定位码: " + locCode);
-                sp.edit().putInt("CurrLocCode", locCode).apply();
-                sp.edit().putString("CurrLongitude", lo).apply();
-                sp.edit().putString("CurrLatitude", la).apply();
-                sp.edit().putString("CurrAddrStr", a).apply();
+            Log.d("LM", "定位码: " + locCode);
+            sp.edit().putInt("CurrLocCode", locCode).apply();
+            sp.edit().putString("CurrLongitude", lo).apply();
+            sp.edit().putString("CurrLatitude", la).apply();
+            sp.edit().putString("CurrAddrStr", a).apply();
 
-                // Toast.makeText(getApplicationContext(),"\t"+locCode,Toast.LENGTH_LONG).show();
-                MLog.i("TrackingService MyLocationListener:\t" + locCode);
-                if (location == null) {
-
-                    if (needClose) {
-                        closeService();
-                    }
-                    //定位返回空值时，重新定位
-                    if (againBoolean) {
-                        try {
-                            Thread.sleep(30 * 1000);
-                            againBoolean = false;
-                            int r = mLocationClient.requestLocation();
-                            Log.d("LM", "定位返回空值时，重新定位:" + r);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    return;
+            // 判断定位是否失败应该依据error code的值更加可靠, 上传坐标信息
+            if (!isLocateAvailable(locCode)) {
+                if (needClose) {
+                    closeService();
                 }
-                // 判断定位是否失败应该依据error code的值更加可靠, 上传坐标信息
-                if (!isLocateAvailable(locCode)) {
-                    if (needClose) {
-                        closeService();
-                    }
-                    // 20161103 陈翔 调试
-                    if (againBoolean) {
-                        try {
-                            Thread.sleep(30 * 1000);
-                            againBoolean = false;
-                            int j = mLocationClient.requestLocation();
-                            Log.d("LM", "定位返回空值时，重新定位:" + j);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        return;
-                    }
-                    Log.d("LM", "定位返回错误码两次，放弃本次定位");
-                    return;
-                }
+                // 20161103 陈翔 调试
+                if (againBoolean) {
+                    try {
 
-                if (mLat == 0 || mLng == 0) {
+                        final String display = Tools.GetDisplayStatus(mContext);
+                        final String charging = Tools.GetChargingStatus(mContext);
 
-                    Log.d("LM", "首次定位");
+                        new Thread() {
+                            public void run() {
 
-                    mLat = location.getLatitude();
-                    mLng = location.getLongitude();
-
-                    new Thread() {
-                        public void run() {
-
-                            if(uploadChannel == true) {
-
-                                // 关闭上传位置通道
-                                Log.d("LM", "关闭上传位置通道");
-                                uploadChannel = false;
-                                String result = uploadLocation(mLat, mLng, location.getTime(), location.getAddrStr(), u, locCode + "");
-                                Log.d("LM", result);
-
-                                try {  Thread.sleep(1000 * 10); } catch (InterruptedException e) { e.printStackTrace(); }
-                                Log.d("LM", "打开上传位置通道");
-                                uploadChannel = true;
-                            }else {
-
-                                Log.d("LM", "碰壁啦");
+                                String re = Tools.timingTracking1("13726027405", a, lo,
+                                        la, locCode + "fds", display, charging, u, mContext);
                             }
+                        }.start();
 
-                        }
-                    }.start();
-                    //   uploadLocation(mLat,mLng,DateUtil.formateWithTime(DateUtil.getDateTime(System.currentTimeMillis()-1000*60*60*24*100)));
-                    //  Toast.makeText(mContext,"首次定位，mLat:"+mLat+"\tmLng;"+mLng+location.getTime(),Toast.LENGTH_LONG).show();
-                } else {
-
-                    Log.d("LM", "非首次定位");
-                    final double lat = location.getLatitude();
-                    final double lng = location.getLongitude();
-                    new Thread() {
-
-                        public void run() {
-
-                            String result = uploadLocation(lat, lng, location.getTime(), location.getAddrStr(), u, locCode + "");
-                            Log.d("LM", result);
-                        }
-                    }.start();
-                    //   uploadLocation(mLat,mLng,DateUtil.formateWithTime(DateUtil.getDateTime(System.currentTimeMillis()-1000*60*24*100)));
-                    //Toast.makeText(mContext,"持续定位，mLat:"+mLat+"\tmLng;"+mLng+location.getTime(),Toast.LENGTH_LONG).show();
+                        Thread.sleep(5 * 1000);
+                        againBoolean = false;
+                        int j = mLocationClient.requestLocation();
+                        Log.d("LM", "定位返回空值时，重新定位:" + j);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    return;
                 }
+                Log.d("LM", "定位返回错误码两次，放弃本次定位");
+                return;
+            }
+
+            if (mLat == 0 || mLng == 0) {
+
+                Log.d("LM", "首次定位");
+
+                mLat = location.getLatitude();
+                mLng = location.getLongitude();
+
+                new Thread() {
+                    public void run() {
+
+                        if (uploadChannel == true) {
+
+                            // 关闭上传位置通道
+                            Log.d("LM", "关闭上传位置通道");
+                            uploadChannel = false;
+                            String result = uploadLocation(mLat, mLng, location.getTime(), location.getAddrStr(), u, locCode + "");
+                            Log.d("LM", result);
+
+                            try {
+                                Thread.sleep(1000 * 10);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            Log.d("LM", "打开上传位置通道");
+                            uploadChannel = true;
+                        } else {
+
+                            Log.d("LM", "碰壁啦");
+                        }
+
+                    }
+                }.start();
+                //   uploadLocation(mLat,mLng,DateUtil.formateWithTime(DateUtil.getDateTime(System.currentTimeMillis()-1000*60*60*24*100)));
+                //  Toast.makeText(mContext,"首次定位，mLat:"+mLat+"\tmLng;"+mLng+location.getTime(),Toast.LENGTH_LONG).show();
+            } else {
+
+                Log.d("LM", "非首次定位");
+                final double lat = location.getLatitude();
+                final double lng = location.getLongitude();
+                new Thread() {
+
+                    public void run() {
+
+                        String result = uploadLocation(lat, lng, location.getTime(), location.getAddrStr(), u, locCode + "");
+                        Log.d("LM", result);
+                    }
+                }.start();
+                //   uploadLocation(mLat,mLng,DateUtil.formateWithTime(DateUtil.getDateTime(System.currentTimeMillis()-1000*60*24*100)));
+                //Toast.makeText(mContext,"持续定位，mLat:"+mLat+"\tmLng;"+mLng+location.getTime(),Toast.LENGTH_LONG).show();
             }
         }
     }
