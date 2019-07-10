@@ -162,7 +162,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
         sp.edit().putString("CurrAddrStr", "").apply();
         sp.edit().putString("CurrLongitude", "").apply();
         sp.edit().putString("CurrLatitude", "").apply();
-        sp.edit().putString("CurrLocCode", "").apply();
+        sp.edit().putInt("CurrLocCode", 13).apply();
 
         try {
             mAppVersion = getMContext().getPackageManager().getPackageInfo(getMContext().getPackageName(), 0).versionName;
