@@ -1044,13 +1044,19 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
             String ReportForms = "file:///data/data/com.kaidongyuan.app.kdytms/upzip/dist/index.html#/ReportForms";
             // 我的
             String HomeIndex = "file:///data/data/com.kaidongyuan.app.kdytms/upzip/dist/index.html#/HomeIndex";
+            // 货源
+            String goodsSource = "file:///data/data/com.kaidongyuan.app.kdytms/upzip/dist/index.html#/goodsSource";
+            // 车源
+            String carSourceList = "file:///data/data/com.kaidongyuan.app.kdytms/upzip/dist/index.html#/carSourceList";
 
             // 主菜单时不允许返回上一页
             if (
                     curURL.indexOf(Index + "?") != -1 || curURL.equals(Index) ||
                             curURL.indexOf(Waybill + "?") != -1 || curURL.equals(Waybill) ||
                             curURL.indexOf(ReportForms + "?") != -1 || curURL.equals(ReportForms) ||
-                            curURL.indexOf(HomeIndex + "?") != -1 || curURL.equals(HomeIndex)
+                            curURL.indexOf(HomeIndex + "?") != -1 || curURL.equals(HomeIndex) ||
+                            curURL.indexOf(goodsSource + "?") != -1 || curURL.equals(goodsSource) ||
+                            curURL.indexOf(carSourceList + "?") != -1 || curURL.equals(carSourceList)
                     ) {
 
                 Log.d("LM", "禁止返回上一页2：" + curURL);
