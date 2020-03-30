@@ -143,6 +143,9 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 
     private Intent mLocationIntent;
 
+    // 用户类型
+    public static String userType;
+
 
     @SuppressLint("JavascriptInterface")
     @Override
@@ -692,6 +695,11 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 //                        });
 //                    }
 //                }.start();
+            } else if (exceName.equals("用户类型")) {
+
+                Log.d("LM", "用户类型");
+                userType = inputName;
+                Log.d("LM", userType);
             }
         }
 
@@ -1050,6 +1058,9 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
             String carSourceList = "file:///data/data/com.kaidongyuan.app.kdytms/upzip/dist/index.html#/carSourceList";
             // 订单
             String od_bid = "file:///data/data/com.kaidongyuan.app.kdytms/upzip/dist/index.html#/od_bid";
+            if(userType.equals("driver")){
+                od_bid = "kkkk";
+            }
             // 发货
             String publishGoods = "file:///data/data/com.kaidongyuan.app.kdytms/upzip/dist/index.html#/publishGoods";
 
