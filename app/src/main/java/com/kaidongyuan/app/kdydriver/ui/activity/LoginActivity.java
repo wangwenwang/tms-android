@@ -824,11 +824,18 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                     if (!file.exists()) {
                         Toast.makeText(getMContext(), "升级包不存在", Toast.LENGTH_SHORT).show();
                     } else {
-                        Uri uri = Uri.fromFile(file);
-                        String type = "application/vnd.android.package-archive";//.apk 的 mime 名
-                        Intent intent = new Intent(Intent.ACTION_VIEW);
-                        intent.setDataAndType(uri, type);
-                        startActivity(intent);
+
+                        try{
+                            Uri uri = FileProvider.getUriForFile(mContext, "com.kaidongyuan.app.kdytms.fileprovider", file);
+                            String type = "application/vnd.android.package-archive";//.apk 的 mime 名
+                            Intent intent = new Intent(Intent.ACTION_VIEW);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                            intent.setDataAndType(uri, type);
+                            startActivity(intent);
+                        }catch (Exception e){
+                            Log.d("LM", e.getMessage());
+                        }
                     }
                     mNotificationManager.cancel(0);
                 } else if (percent == -1) {
