@@ -20,6 +20,7 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.os.SystemClock;
+import android.speech.tts.TextToSpeech;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.view.Display;
@@ -69,6 +70,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static com.kaidongyuan.app.kdydriver.constants.Constants.SP_WhoStartTrackingService_Value_Default;
@@ -114,6 +116,9 @@ public class TrackingService extends Service {
     // 上传通道
     private boolean uploadChannel = true;
     // private PowerManager.WakeLock wakeLock = null;
+
+    TextToSpeech textToSpeech;
+    int tts_status;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -172,6 +177,17 @@ public class TrackingService extends Service {
             }
         });
         mThread.start();
+
+        textToSpeech = new TextToSpeech(TrackingService.this, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int i) {
+                if (i == TextToSpeech.SUCCESS) {
+                    tts_status = textToSpeech.setLanguage(Locale.US);
+                } else {
+                    Toast.makeText(TrackingService.this, "Your Device is not Supported this features", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
     private void alamManagersend() {
@@ -668,6 +684,13 @@ public class TrackingService extends Service {
             int response = httpURLConnection.getResponseCode();            //获得服务器的响应码
             if(response == HttpURLConnection.HTTP_OK) {
                 Log.d("LM", "上传位置成功");
+
+                if (tts_status == TextToSpeech.LANG_MISSING_DATA || tts_status == TextToSpeech.LANG_NOT_SUPPORTED) {
+                    Toast.makeText(TrackingService.this, "Your Device is not Supported this features", Toast.LENGTH_SHORT).show();
+                } else {
+                    textToSpeech.speak("上传成功", TextToSpeech.QUEUE_FLUSH, null);
+                    textToSpeech.setPitch(1);
+                }
 
                 InputStream inptStream = httpURLConnection.getInputStream();
 
