@@ -670,7 +670,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                             @Override
                             public void run() {
 
-                                Tools.ToNavigation(inputName, mContext, appName);
+                                Tools.ToNavigation(inputName, mContext, appName, "", "");
                             }
                         });
                     }
@@ -701,6 +701,26 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                 userType = inputName;
                 Log.d("LM", userType);
             }
+        }
+
+        @JavascriptInterface
+        public void nav_lnglat(final String lng, final String lat) {
+
+            Log.d("LM", "导航");
+
+            new Thread() {
+
+                public void run() {
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+
+                            Tools.ToNavigation("", mContext, appName, lng, lat);
+                        }
+                    });
+                }
+            }.start();
         }
 
         @JavascriptInterface

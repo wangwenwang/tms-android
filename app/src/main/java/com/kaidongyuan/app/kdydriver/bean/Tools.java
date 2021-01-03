@@ -61,6 +61,7 @@ import static android.content.Context.MODE_PRIVATE;
 import static android.content.Context.WINDOW_SERVICE;
 import static android.widget.Toast.LENGTH_LONG;
 import static com.kaidongyuan.app.kdydriver.constants.Constants.SP_WhoStartTrackingService_Value_Default;
+import static com.kaidongyuan.app.kdydriver.utils.UIUtils.getPackageName;
 
 public class Tools{
 
@@ -302,7 +303,7 @@ public class Tools{
 	 *
 	 * @return
 	 */
-	public static void ToNavigation(final String address, final Context mContext, final String appName) {
+	public static void ToNavigation(final String address, final Context mContext, final String appName, final String lng, final String lat) {
 
 
         List list = new ArrayList();
@@ -327,7 +328,7 @@ public class Tools{
                         public void onClick(PromptButton button) {
 
                             Log.d("LM", "调用高德地图");
-                            minimap(mContext, address, appName);
+                            minimap(mContext, address, appName, lng, lat);
                         }
                     }),
                     new PromptButton("百度地图", new PromptButtonListener() {
@@ -335,7 +336,7 @@ public class Tools{
                         public void onClick(PromptButton button) {
 
                             Log.d("LM", "调用百度地图");
-                            BaiduMap(mContext, address);
+                            BaiduMap(mContext, address, appName, lng, lat);
                         }
                     })
             );
@@ -344,11 +345,11 @@ public class Tools{
             if (list.get(0).equals("高德地图")) {
 
                 Log.d("LM", "调用高德地图");
-                minimap(mContext, address, appName);
+                minimap(mContext, address, appName, lng, lat);
             } else if (list.get(0).equals("百度地图")) {
 
                 Log.d("LM", "调用百度地图");
-                BaiduMap(mContext, address);
+                BaiduMap(mContext, address, appName, lng, lat);
             }
         } else {
 
@@ -357,7 +358,7 @@ public class Tools{
     }
 
 
-    private static void minimap(Context mContext, String address, String appName) {
+    private static void minimap(Context mContext, String address, String appName, String lng, String lat) {
         //跳转到高德导航
         Intent autoIntent = new Intent();
         try {
@@ -366,8 +367,8 @@ public class Tools{
                             "sourceApplication=" + appName +
                             "&slat=" + "" +
                             "&slon=" + "" +
-                            "&dlat=" + "" +
-                            "&dlon=" + "" +
+                            "&dlat=" + lat +
+                            "&dlon=" + lng +
                             "&dname=" + address +
                             "&dev=0" +
                             "&m=2" +
@@ -379,23 +380,18 @@ public class Tools{
         mContext.startActivity(autoIntent);
     }
 
-    private static void BaiduMap(Context mContext, String address) {
+    private static void BaiduMap(Context mContext, String address, String appName, String lng, String lat) {
 
         //跳转到百度导航
-        try {
-            Intent baiduintent = Intent.parseUri("intent://map/direction?" +
-                    "origin=" + "" +
-                    "&destination=" + address +
-                    "&mode=driving" +
-                    "&src=Name|AppName" +
-                    "#Intent;scheme=bdapp;package=com.baidu.BaiduMap;end", 0);
-            mContext.startActivity(baiduintent);
-        } catch (URISyntaxException e) {
-            MLog.d("URISyntaxException : " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
+		Intent baiduintent = new Intent();
+		baiduintent.setData(Uri.parse("baidumap://map/direction?destination=latlng:"
+				+ lat + ","
+				+ lng + "|name:" + address + // 终点
+				"&mode=driving" + // 导航路线方式
+				"&coord_type=gcj02" +
+				"&src=" + getPackageName()));
+		mContext.startActivity(baiduintent);
+	}
 
 
 	/**
