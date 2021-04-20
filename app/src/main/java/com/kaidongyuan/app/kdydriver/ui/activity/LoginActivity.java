@@ -85,6 +85,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.kaidongyuan.app.kdydriver.constants.Constants.VoiceStatus;
+
 
 public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCallback {
 
@@ -520,6 +522,12 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
         };
 
         @JavascriptInterface
+        public void VoiceStatus(String status) {
+            SharedPreferences sp = mContext.getSharedPreferences(Constants.SP_W_UserInfo_Key, MODE_MULTI_PROCESS);
+            sp.edit().putString(VoiceStatus, status).apply();
+        }
+
+        @JavascriptInterface
         public void callAndroid(String exceName) {
 
             Log.d("LM", "执行:" + exceName);
@@ -572,6 +580,7 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 
                 final String u = sp.getString("UserName", "");
                 final String p = sp.getString("Password", "");
+                final String v = sp.getString(VoiceStatus, "");
 
                 runOnUiThread(new Runnable() {
                     @Override
@@ -586,6 +595,11 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
                         Log.d("LM", url);
 
                         url = "javascript:Device_Ajax('android')";
+                        LoginActivity.mWebView.loadUrl(url);
+                        Log.d("LM", url);
+
+                        // 上传位置成功后，是否语音播报
+                        url = "javascript:VoiceStatus('" + v + "')";
                         LoginActivity.mWebView.loadUrl(url);
                         Log.d("LM", url);
                     }

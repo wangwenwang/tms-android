@@ -74,6 +74,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import static com.kaidongyuan.app.kdydriver.constants.Constants.SP_WhoStartTrackingService_Value_Default;
+import static com.kaidongyuan.app.kdydriver.constants.Constants.VoiceStatus;
 
 /**
  * 后台定位服务
@@ -685,11 +686,15 @@ public class TrackingService extends Service {
             if(response == HttpURLConnection.HTTP_OK) {
                 Log.d("LM", "上传位置成功");
 
+                String v = sp.getString(VoiceStatus, "");
+
                 if (tts_status == TextToSpeech.LANG_MISSING_DATA || tts_status == TextToSpeech.LANG_NOT_SUPPORTED) {
                     Toast.makeText(TrackingService.this, "Your Device is not Supported this features", Toast.LENGTH_SHORT).show();
                 } else {
-                    textToSpeech.speak("上传成功", TextToSpeech.QUEUE_FLUSH, null);
-                    textToSpeech.setPitch(1);
+                    if(v.equals("open")){
+                        textToSpeech.speak("上传成功", TextToSpeech.QUEUE_FLUSH, null);
+                        textToSpeech.setPitch(1);
+                    }
                 }
 
                 InputStream inptStream = httpURLConnection.getInputStream();

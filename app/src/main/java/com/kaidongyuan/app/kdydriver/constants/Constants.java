@@ -41,6 +41,7 @@ public class Constants {
     public static final String IsUsedApp="isusedapp";
     public static final String UserName="userName";
     public static final String UserPWD="userPwd";
+    public static final String VoiceStatus="close";
     public static final String UserCode="useCode";
     public static final String UserType="useType";
     public static final String WXLogin_AppID="wx011d8094226f8fbc";
