@@ -940,12 +940,12 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 
         AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
         builder.setTitle("拍照/相册");
-//        builder.setPositiveButton("相册", new DialogInterface.OnClickListener() {
-//            @Override
-//            public void onClick(DialogInterface dialog, int which) {
-//                takePhoto();
-//            }
-//        });
+        builder.setPositiveButton("相册", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                takePhoto();
+            }
+        });
         builder.setNegativeButton("拍照", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
