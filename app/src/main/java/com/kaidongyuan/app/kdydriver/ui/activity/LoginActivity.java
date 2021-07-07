@@ -148,6 +148,8 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
     // 用户类型
     public static String userType;
 
+    private Uri photoUri;
+
 
     @SuppressLint("JavascriptInterface")
     @Override
@@ -932,7 +934,6 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
 
 
             Log.d("LM", "拍照5.9.1: ");
-            takeCameraM();
         }
     }
 
@@ -964,25 +965,32 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
         startActivityForResult(Intent.createChooser(i, "Image Chooser"), FILE_CHOOSER_RESULT_CODE);
     }
 
+    //当前资源裁剪后保存的目标位置
+    private Uri getDestinationUri()  {
+        String fileName = String.format("fr_crop_%s.jpg", System.currentTimeMillis());
+        File cropFile = null;
+        try {
+            cropFile = File.createTempFile(fileName, "");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return Uri.fromFile(cropFile);
+    }
+
     //拍照
     private void takeCamera() {
+
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-
-        if (hasSDCard()) {
-            String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-            String imageFileName = "JPEG_" + timeStamp + "_";
-            File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-            File imageFile;
-            try {
-
-                imageFile = File.createTempFile(imageFileName, ".jpg", storageDir);
-                cameraFielPath = imageFile.getPath();
-            } catch (IOException e) {
-
-                e.printStackTrace();
+        if (hasSDCard() && intent.resolveActivity(getPackageManager()) != null) {
+            photoUri = getDestinationUri();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                // 适配Android 7.0文件权限，通过FileProvider创建一个content类型的Uri
+                photoUri = FileProvider.getUriForFile(this, "com.kaidongyuan.app.kdytms.fileprovider", new File(photoUri.getPath()));
+            } else {
+                photoUri = getDestinationUri();
             }
-            File outputImage = new File(cameraFielPath);
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(outputImage));
+            // android11以后强制分区存储，外部资源无法访问，所以添加一个输出保存位置，然后取值操作
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
             startActivityForResult(intent, FILE_CAMERA_RESULT_CODE);
         }
     }
@@ -995,25 +1003,6 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
     public boolean hasSDCard() {
 
         return Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState());
-    }
-
-    private void takeCameraM() {
-        Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);//打开相机的Intent
-        if (takePhotoIntent.resolveActivity(getPackageManager()) != null) {//这句作用是如果没有相机则该应用不会闪退，要是不加这句则当系统没有相机应用的时候该应用会闪退
-            File imageFile = createImageFile();//创建用来保存照片的文件
-            if (imageFile != null) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    /*7.0以上要通过FileProvider将File转化为Uri*/
-                    mImageUri = FileProvider.getUriForFile(this, FILE_PROVIDER_AUTHORITY, imageFile);
-                } else {
-                    /*7.0以下则直接使用Uri的fromFile方法将File转化为Uri*/
-                    mImageUri = Uri.fromFile(imageFile);
-                }
-                takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);//将用于输出的文件Uri传递给相机
-                startActivityForResult(takePhotoIntent, FILE_CAMERA_RESULT_CODE);//打开相机
-            }
-        } else {
-        }
     }
 
     /**
@@ -1247,17 +1236,9 @@ public class LoginActivity extends BaseFragmentActivity implements AsyncHttpCall
         Uri result = null;
         if (requestCode == FILE_CAMERA_RESULT_CODE) {
 
-            if (result == null && hasFile(cameraFielPath)) {
-
-                result = Uri.fromFile(new File(cameraFielPath));
-            }
-            if (uploadMessageAboveL != null) {
-
-                uploadMessageAboveL.onReceiveValue(new Uri[]{result});
-
-                uploadMessageAboveL = null;
+            if (photoUri != null) {
+                uploadMessageAboveL.onReceiveValue(new Uri[]{photoUri});
             } else if (uploadMessage != null) {
-
                 uploadMessage.onReceiveValue(result);
                 uploadMessage = null;
             }

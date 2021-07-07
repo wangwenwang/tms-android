@@ -22,4 +22,8 @@
     <root-path
         name="root-path"
         path="" />
+
+    <cache-path name="name" path="." />
+    <files-path path="." name="files_path" />
+
     </paths>
